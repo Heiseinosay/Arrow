@@ -44,7 +44,7 @@ class Login : AppCompatActivity() {
 
         // check for null input
         if (email.text.isEmpty() || password.text.isEmpty()){
-            Toast.makeText(this, "Email or Passowrd field must not be empty.", Toast.LENGTH_SHORT)
+            Toast.makeText(this, "Email or Password field must not be empty.", Toast.LENGTH_SHORT)
                 .show()
             return
         }
