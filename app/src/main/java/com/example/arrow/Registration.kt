@@ -47,20 +47,20 @@ class Registration : AppCompatActivity() {
                         Log.d("FIREBASE_AUTH_LOG", "createUserWithEmail:success")
                         val user = auth.currentUser
 
-//                        val newUser = hashMapOf(
-//                            "email" to email,
-//                            "name" to name,
-//                            "password" to pass,
-//                        )
-//                        db.collection("users")
-//                            .add(newUser)
-//                            .addOnSuccessListener { documentReference ->
-//                                Log.d("FIREBASE_LOG", "DocumentSnapshot added with ID: ${documentReference.id}")
-//                            }
-//                            .addOnFailureListener { e ->
-//                                Log.w("FIREBASE_LOG", "Error adding document", e)
-//                            }
-
+                        val newUser = hashMapOf(
+                            "email" to email,
+                            "name" to name,
+                            "id" to user?.uid,
+                        )
+                        db.collection("users")
+                            .add(newUser)
+                            .addOnSuccessListener { documentReference ->
+                                Log.d("FIREBASE_LOG", "DocumentSnapshot added with ID: ${documentReference.id}")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.w("FIREBASE_LOG", "Error adding document", e)
+                                Toast.makeText(applicationContext, e.toString(),Toast.LENGTH_SHORT).show()
+                            }
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w("FIREBASE_AUTH_LOG", "createUserWithEmail:failure", task.exception)
