@@ -62,7 +62,9 @@ class Login : AppCompatActivity() {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(TAG, "signInWithEmail:success")
                     val user = auth.currentUser
-                    updateUI(user)
+
+                    // redirect to Main Activity
+                    // nothing here for now
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "signInWithEmail:failure", task.exception)
@@ -71,7 +73,8 @@ class Login : AppCompatActivity() {
                         "Authentication failed.",
                         Toast.LENGTH_SHORT,
                     ).show()
-                    updateUI(null)
+
+                    // nothing here for now
                 }
             }
     }
