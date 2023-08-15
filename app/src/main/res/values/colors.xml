@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="white">#FFFFFFFF</color>
+    <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <!--  ARROW COLORS  -->
     <color name="red">#C61F1F</color>
     <color name="darkRed">#720000</color>
     <color name="lightGrey">#EEEEEE</color>
     <color name="medGrey">#817D7D</color>
-    <color name="darkGrey">#817D7D</color>
+    <color name="darkGrey">#969696</color>
     <color name="offWhite">#F8F8F8</color>
     <color name="blue">#206DC6</color>
     <color name="green">#31A02B</color>

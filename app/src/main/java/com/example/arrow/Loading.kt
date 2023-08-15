@@ -64,10 +64,9 @@ class Loading : AppCompatActivity() {
                     startActivity(Intent(this@Loading, Login::class.java))
                     finish();
                 }
-
             } else {
                 startProgressAutomation(seekBar)
             }
-        }, 30) // Delay in milliseconds
+        }, 10) // Delay in milliseconds
     }
 }
