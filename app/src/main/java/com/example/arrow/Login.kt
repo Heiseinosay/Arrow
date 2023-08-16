@@ -13,6 +13,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
+import android.view.Window
+import android.view.WindowManager
+import androidx.core.content.ContextCompat
+
 class Login : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
@@ -20,10 +24,13 @@ class Login : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-        // TODO: connect database and add functional query
+
+        // SET STATUS BAR COLOR
+        val window: Window = window
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.red)
 
         auth = Firebase.auth
-
         // ID'S
         val forgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
         val register = findViewById<TextView>(R.id.tvRegister)
@@ -41,10 +48,9 @@ class Login : AppCompatActivity() {
         }
 
     }
-
     // getting input from user
     private fun performLogin(){
-        val email = findViewById<EditText>(R.id.inputEmail)
+        val email = findViewById<EditText>(R.id.tvFullName)
         val password = findViewById<EditText>(R.id.inputPassword)
 
         // check for null input

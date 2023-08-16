@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
 import com.google.android.material.card.MaterialCardView
+import org.w3c.dom.Text
 
 class RegistrationSecondPart : AppCompatActivity() {
     private var classStatus = -1
@@ -44,20 +45,33 @@ class RegistrationSecondPart : AppCompatActivity() {
     @SuppressLint("ResourceAsColor")
     fun setStatus(status: Int, student: MaterialCardView, employee: MaterialCardView, visitor: MaterialCardView) {
         // Toast.makeText(this, "$status hello", Toast.LENGTH_SHORT).show()
+        val txtStudent = findViewById<TextView>(R.id.tvStudent)
+        val txtEmployee = findViewById<TextView>(R.id.tvEmployee)
+        val txtVisitor = findViewById<TextView>(R.id.tvVisitor)
         classStatus = status
         when (status) {
             0 -> {
                 student.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 employee.setCardBackgroundColor(resources.getColor(R.color.white))
                 visitor.setCardBackgroundColor(resources.getColor(R.color.white))
+                txtStudent.setTextColor(resources.getColor(R.color.white))
+                txtEmployee.setTextColor(resources.getColor(R.color.black))
+                txtVisitor.setTextColor(resources.getColor(R.color.black))
+
             } 1 -> {
                 employee.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 student.setCardBackgroundColor(resources.getColor(R.color.white))
                 visitor.setCardBackgroundColor(resources.getColor(R.color.white))
+                txtStudent.setTextColor(resources.getColor(R.color.black))
+                txtEmployee.setTextColor(resources.getColor(R.color.white))
+                txtVisitor.setTextColor(resources.getColor(R.color.black))
             } 2 -> {
                 visitor.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 student.setCardBackgroundColor(resources.getColor(R.color.white))
                 employee.setCardBackgroundColor(resources.getColor(R.color.white))
+                txtStudent.setTextColor(resources.getColor(R.color.black))
+                txtEmployee.setTextColor(resources.getColor(R.color.black))
+                txtVisitor.setTextColor(resources.getColor(R.color.white))
             }
             else -> {
                 Toast.makeText(this, "Invalid", Toast.LENGTH_SHORT).show()
