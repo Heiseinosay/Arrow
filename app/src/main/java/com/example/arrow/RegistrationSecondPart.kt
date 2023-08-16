@@ -96,7 +96,7 @@ class RegistrationSecondPart : AppCompatActivity() {
                 txtEmployee.setTextColor(resources.getColor(R.color.white))
                 txtVisitor.setTextColor(resources.getColor(R.color.black))
             } 2 -> {
-                role = "Guest"
+                role = "Visitor"
                 visitor.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 student.setCardBackgroundColor(resources.getColor(R.color.white))
                 employee.setCardBackgroundColor(resources.getColor(R.color.white))
