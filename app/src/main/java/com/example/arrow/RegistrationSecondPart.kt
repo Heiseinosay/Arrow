@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
 import com.google.android.material.card.MaterialCardView
+// <<<<<<< registration-2
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -17,6 +18,9 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+=======
+import org.w3c.dom.Text
+// >>>>>>> master
 
 class RegistrationSecondPart : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
