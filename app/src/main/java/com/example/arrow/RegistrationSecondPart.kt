@@ -9,19 +9,33 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
 import com.google.android.material.card.MaterialCardView
+// <<<<<<< registration-2
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+=======
 import org.w3c.dom.Text
+// >>>>>>> master
 
 class RegistrationSecondPart : AppCompatActivity() {
+    private lateinit var db: FirebaseFirestore
+    private lateinit var auth: FirebaseAuth
+    private var user: FirebaseUser? = null
     private var classStatus = -1
+    private lateinit var role: String
     @SuppressLint("ResourceAsColor")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration_second_part)
 
-        // DATA FROM REGISTRATION PART 1
-        val userName = intent.getStringExtra("Info")
-        val eMail = intent.getStringExtra("Email")
-        val id = intent.getStringExtra("id")
+        // initialize database and authentication
+        db = Firebase.firestore
+        auth = Firebase.auth
 
         // ID'S
         val btnStudent = findViewById<MaterialCardView>(R.id.mtStudent)
@@ -35,10 +49,28 @@ class RegistrationSecondPart : AppCompatActivity() {
         btnConfirm.setOnClickListener {
             if (classStatus == -1) {
                 Toast.makeText(this, "Please select one", Toast.LENGTH_SHORT).show()
-            } else {
-                // TODO: ADD STUDENT/EMPLOYEE/VISITOR ON DB
-                Toast.makeText(this, "$classStatus", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+            Toast.makeText(this, "$classStatus", Toast.LENGTH_SHORT).show()
+            // DATA FROM REGISTRATION PART 1
+            val userName = intent.getStringExtra("Info")
+            val eMail = intent.getStringExtra("Email")
+            val password = intent.getStringExtra("Password")
+
+            val current = LocalDateTime.now()
+            val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+            val dateFormatted = current.format(dateFormat)
+            val timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
+            val timeFormatted = current.format(timeFormat)
+
+            val newUser = hashMapOf<String, String>(
+                "name" to userName!!,
+                "email" to eMail!!,
+                "date" to dateFormatted!!,
+                "time" to timeFormatted!!,
+                "role" to role,
+            )
+            createAccount(newUser, password)
         }
     }
 
@@ -51,6 +83,7 @@ class RegistrationSecondPart : AppCompatActivity() {
         classStatus = status
         when (status) {
             0 -> {
+                role = "Student"
                 student.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 employee.setCardBackgroundColor(resources.getColor(R.color.white))
                 visitor.setCardBackgroundColor(resources.getColor(R.color.white))
@@ -59,6 +92,7 @@ class RegistrationSecondPart : AppCompatActivity() {
                 txtVisitor.setTextColor(resources.getColor(R.color.black))
 
             } 1 -> {
+                role = "Employee"
                 employee.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 student.setCardBackgroundColor(resources.getColor(R.color.white))
                 visitor.setCardBackgroundColor(resources.getColor(R.color.white))
@@ -66,6 +100,7 @@ class RegistrationSecondPart : AppCompatActivity() {
                 txtEmployee.setTextColor(resources.getColor(R.color.white))
                 txtVisitor.setTextColor(resources.getColor(R.color.black))
             } 2 -> {
+                role = "Visitor"
                 visitor.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 student.setCardBackgroundColor(resources.getColor(R.color.white))
                 employee.setCardBackgroundColor(resources.getColor(R.color.white))
@@ -77,5 +112,50 @@ class RegistrationSecondPart : AppCompatActivity() {
                 Toast.makeText(this, "Invalid", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+    fun createAccount(newUser: HashMap<String, String>, pass: String?) {
+        val email = newUser["email"]
+        auth.createUserWithEmailAndPassword(email ?: "", pass ?: "")
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    Log.d("FIREBASE_AUTH_LOG", "createUserWithEmail:success")
+                    user = auth.currentUser
+
+                    val uid = user?.uid ?:""
+                    if (uid == "") {
+                        Log.w("FIREBASE_DB_LOG", "Adding User to DB:failure no UID")
+                        Toast.makeText(
+                            baseContext,
+                            "Adding to database failed.",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        return@addOnCompleteListener
+                    }
+
+                    newUser.set("uid",uid)
+                    db.collection("users").document(uid)
+                        .set(newUser)
+                        .addOnSuccessListener {
+                            Log.w("FIREBASE_DB_LOG", "Adding User to DB:Success")
+                        }
+                        .addOnFailureListener {
+                            Log.w("FIREBASE_DB_LOG", "Adding User to DB:failure", it)
+                            Toast.makeText(
+                                baseContext,
+                                "Adding to database failed.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w("FIREBASE_AUTH_LOG", "createUserWithEmail:failure", task.exception)
+                    Toast.makeText(
+                        baseContext,
+                        "Authentication failed.",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
     }
 }
