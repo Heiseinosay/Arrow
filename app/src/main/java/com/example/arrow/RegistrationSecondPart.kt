@@ -1,9 +1,12 @@
 package com.example.arrow
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -18,7 +21,6 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-=======
 import org.w3c.dom.Text
 // >>>>>>> master
 
@@ -32,6 +34,18 @@ class RegistrationSecondPart : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration_second_part)
+
+        // DETECT BACK EXECUTION
+        val rootView = findViewById<View>(android.R.id.content)
+        rootView.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_DOWN) {
+                Log.i("MYTAG", "BACK PRESSED")
+                finish()
+                true // Return true to indicate that the event was handled
+            } else {
+                false // Return false to pass the event to other handlers
+            }
+        }
 
         // initialize database and authentication
         db = Firebase.firestore
@@ -51,12 +65,13 @@ class RegistrationSecondPart : AppCompatActivity() {
                 Toast.makeText(this, "Please select one", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            Toast.makeText(this, "$classStatus", Toast.LENGTH_SHORT).show()
+            // Toast.makeText(this, "$classStatus", Toast.LENGTH_SHORT).show()
             // DATA FROM REGISTRATION PART 1
             val userName = intent.getStringExtra("Info")
             val eMail = intent.getStringExtra("Email")
             val password = intent.getStringExtra("Password")
 
+            // TIME AND DATE FOR DATABASE
             val current = LocalDateTime.now()
             val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
             val dateFormatted = current.format(dateFormat)
@@ -137,6 +152,8 @@ class RegistrationSecondPart : AppCompatActivity() {
                         .set(newUser)
                         .addOnSuccessListener {
                             Log.w("FIREBASE_DB_LOG", "Adding User to DB:Success")
+                            val openLogin = Intent(this@RegistrationSecondPart, Login::class.java)
+                            startActivity(openLogin)
                         }
                         .addOnFailureListener {
                             Log.w("FIREBASE_DB_LOG", "Adding User to DB:failure", it)

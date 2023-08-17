@@ -15,11 +15,16 @@
         android:theme="@style/Theme.Arrow"
         tools:targetApi="31">
         <activity
+            android:name=".BirdsEyeView"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".RegistrationSecondPart"
             android:exported="false" />
         <activity
             android:name=".Loading"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,11 +33,13 @@
         </activity>
         <activity
             android:name=".Registration"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Login"
             android:exported="false"
-            android:theme="@style/CustomTheme" />
+            android:theme="@style/CustomTheme"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

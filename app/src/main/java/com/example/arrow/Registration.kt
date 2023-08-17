@@ -22,8 +22,10 @@ open class Registration : AppCompatActivity() {
 
         val login = findViewById<TextView>(R.id.tvLogin)
         login.setOnClickListener {
-            val openLogin = Intent(this@Registration, Login::class.java)
-            startActivity(openLogin)
+            //val openLogin = Intent(this@Registration, Login::class.java)
+            //startActivity(openLogin)
+            this.onBackPressed ()
+            finish()
         }
 
 

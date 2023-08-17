@@ -25,6 +25,8 @@ class Login : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
+//        this.onBackPressed ()
+
         // SET STATUS BAR COLOR
         val window: Window = window
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
@@ -43,17 +45,15 @@ class Login : AppCompatActivity() {
             val openRegister = Intent(this@Login, Registration::class.java)
             startActivity(openRegister)
         }
-        loginButton.setOnClickListener {
-            performLogin()
-        }
+        loginButton.setOnClickListener { performLogin() }
 
     }
-    // getting input from user
+    // GETTING INPUT FROM USE
     private fun performLogin(){
         val email = findViewById<EditText>(R.id.tvFullName)
         val password = findViewById<EditText>(R.id.inputPassword)
 
-        // check for null input
+        // CHECK FOR NULL INPUT
         if (email.text.isEmpty() || password.text.isEmpty()) {
             Toast.makeText(this, "Email or Password field must not be empty.", Toast.LENGTH_SHORT).show()
             return
@@ -70,8 +70,11 @@ class Login : AppCompatActivity() {
                     val user = auth.currentUser
 
                     // redirect to Main Activity
-                    Toast.makeText(this, "You are now logged in.", Toast.LENGTH_SHORT).show()
-                    // nothing here for now
+                    // PROCEED ON BIRDS EYE VIEW
+                    // Toast.makeText(this, "You are now logged in.", Toast.LENGTH_SHORT).show()
+                   val openBirdsEyeView = Intent(this@Login, BirdsEyeView::class.java)
+                    startActivity(openBirdsEyeView)
+                    finish()
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "signInWithEmail:failure", task.exception)
@@ -80,8 +83,6 @@ class Login : AppCompatActivity() {
                         "Authentication failed.",
                         Toast.LENGTH_SHORT,
                     ).show()
-
-                    // nothing here for now
                 }
             }
     }
