@@ -152,6 +152,8 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.72">
 
+
+        <!--Password Validation-->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -162,17 +164,28 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.5">
 
-            <TextView
-                android:id="@+id/tvValidation2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="At least one uppercase"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
+            <androidx.cardview.widget.CardView
+                android:id="@+id/valid1"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                app:cardBackgroundColor="@color/lightGrey"
+                app:cardCornerRadius="25dp"
+                app:constraintTopVertical_bias="0.505"
+                app:layout_constraintBottom_toBottomOf="@+id/tvValidation1"
+                app:layout_constraintEnd_toStartOf="@+id/tvValidation1"
                 app:layout_constraintHorizontal_bias="0.351"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.505" />
+                app:layout_constraintTop_toTopOf="@+id/tvValidation1">
+
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/pass_check"
+                    tools:layout_editor_absoluteX="15dp"
+                    tools:layout_editor_absoluteY="16dp" />
+            </androidx.cardview.widget.CardView>
 
             <TextView
                 android:id="@+id/tvValidation1"
@@ -185,6 +198,86 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.188" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/valid2"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                app:cardBackgroundColor="@color/lightGrey"
+                app:cardCornerRadius="25dp"
+                app:constraintTopVertical_bias="0.505"
+                app:layout_constraintBottom_toBottomOf="@+id/tvValidation2"
+                app:layout_constraintEnd_toStartOf="@+id/tvValidation2"
+                app:layout_constraintHorizontal_bias="0.351"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/tvValidation2">
+
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/pass_check"
+                    tools:layout_editor_absoluteX="15dp"
+                    tools:layout_editor_absoluteY="16dp" />
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tvValidation2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="At least one uppercase"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.351"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.505" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/valid3"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                app:cardBackgroundColor="@color/lightGrey"
+                app:cardCornerRadius="25dp"
+                app:constraintTopVertical_bias="0.505"
+                app:layout_constraintBottom_toBottomOf="@+id/tvValidation3"
+                app:layout_constraintEnd_toStartOf="@+id/tvValidation3"
+                app:layout_constraintHorizontal_bias="0.351"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/tvValidation3">
+
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/pass_check"
+                    tools:layout_editor_absoluteX="15dp"
+                    tools:layout_editor_absoluteY="16dp" />
+            </androidx.cardview.widget.CardView>
 
             <TextView
                 android:id="@+id/tvValidation3"
@@ -197,7 +290,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.811" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

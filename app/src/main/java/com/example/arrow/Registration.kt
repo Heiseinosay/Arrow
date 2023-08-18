@@ -59,33 +59,33 @@ open class Registration : AppCompatActivity() {
     @SuppressLint("ResourceAsColor")
     private fun passwordValidation(){
         val passwordCheck = findViewById<EditText>(R.id.tvPassword).text.toString()
-        val passValidation1 = findViewById<TextView>(R.id.tvValidation1)
-        val passValidation2 = findViewById<TextView>(R.id.tvValidation2)
-        val passValidation3 = findViewById<TextView>(R.id.tvValidation3)
+        val passValidation1 = findViewById<TextView>(R.id.valid1)
+        val passValidation2 = findViewById<TextView>(R.id.valid2)
+        val passValidation3 = findViewById<TextView>(R.id.valid3)
 
         if (passwordCheck.length >= 8){
             passValidation1.setTextColor(Color.parseColor(R.color.blue.toString()))
         } else {
-            passValidation1.setTextColor(Color.parseColor(R.color.lightGrey.toString()))
+            passValidation1.setTextColor(Color.parseColor(R.color.red.toString()))
         }
 
-        if (Regex(".*[A-Z]*.").containsMatchIn(passwordCheck)){
+        if ((".*[A-Z]*.").toRegex().matches(passwordCheck)){
             passValidation2.setTextColor(Color.parseColor(R.color.blue.toString()))
         } else {
-            passValidation2.setTextColor(Color.parseColor(R.color.lightGrey.toString()))
+            passValidation2.setTextColor(Color.parseColor(R.color.red.toString()))
         }
 
-        if(Regex(".*[0-9]*.").containsMatchIn(passwordCheck)){
+        if((".*[0-9]*.").toRegex().matches(passwordCheck)){
             passValidation3.setTextColor(Color.parseColor(R.color.blue.toString()))
         } else {
-            passValidation3.setTextColor(Color.parseColor(R.color.lightGrey.toString()))
+            passValidation3.setTextColor(Color.parseColor(R.color.red.toString()))
         }
     }
 
     // To constantly check the changes in password edit
     private fun contChange(){
         val changedPassword = findViewById<EditText>(R.id.tvPassword)
-        changedPassword.addTextChangedListener(object: TextWatcher{
+        changedPassword.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
 
             }
