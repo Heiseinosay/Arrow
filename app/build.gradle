@@ -34,6 +34,12 @@ android {
 }
 
 dependencies {
+    // let system handle permission request
+    implementation("androidx.activity:activity-ktx:1.7.2")
+    implementation("androidx.fragment:fragment-ktx:1.6.1")
+    // openstreetmap api
+    implementation 'org.osmdroid:osmdroid-android:6.1.16'
+    // ---
     // firebase --
     implementation(platform("com.google.firebase:firebase-bom:32.2.2"))
     implementation("com.google.firebase:firebase-analytics-ktx")
