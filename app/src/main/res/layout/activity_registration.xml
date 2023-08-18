@@ -137,6 +137,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:passwordToggleEnabled="true">
+                <!--app:passwordToggleDrawable="@drawable/ic_password_toggle">-->
 
                 <EditText
                     android:id="@+id/tvPassword"
@@ -195,7 +196,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                app:cardBackgroundColor="@color/lightGrey"
+                app:cardBackgroundColor="@color/darkGrey"
                 app:cardCornerRadius="25dp"
                 app:layout_constraintBottom_toBottomOf="@+id/tvValidation1"
                 app:layout_constraintEnd_toStartOf="@+id/tvValidation1"
@@ -240,7 +241,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                app:cardBackgroundColor="@color/lightGrey"
+                app:cardBackgroundColor="@color/darkGrey"
                 app:cardCornerRadius="25dp"
                 app:layout_constraintBottom_toBottomOf="@+id/tvValidation2"
                 app:layout_constraintEnd_toStartOf="@+id/tvValidation2"
@@ -285,7 +286,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                app:cardBackgroundColor="@color/lightGrey"
+                app:cardBackgroundColor="@color/darkGrey"
                 app:cardCornerRadius="25dp"
                 app:layout_constraintBottom_toBottomOf="@+id/tvValidation3"
                 app:layout_constraintEnd_toStartOf="@+id/tvValidation3"
