@@ -22,12 +22,13 @@ import androidx.core.content.ContextCompat
 class Login : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-//        this.onBackPressed ()
+        //        this.onBackPressed ()
 
         // SET STATUS BAR COLOR
         val window: Window = window
@@ -36,16 +37,20 @@ class Login : AppCompatActivity() {
 
         //Firebase
         auth = Firebase.auth
-        // var firebaseAuth = FirebaseAuth.getInstance()
-        //var firebaseUser = auth.currentUser
 
         //save email and password
+        sharedPreferences = getSharedPreferences("rememberMe", MODE_PRIVATE)
         val checkBox = findViewById<CheckBox>(R.id.checkBox)
+        val isChecked = checkBox.isChecked
 
-        /* val FILE_EMAIL = "rememberMe"
-        SharedPreferences sharedPreferences = getSharedPreferences(FILE_EMAIL, MODE_PRIVATE) */
+        if (isChecked){
+            val email = findViewById<EditText>(R.id.inputEmail).text.toString()
+            val password = findViewById<EditText>(R.id.inputPassword).text.toString()
 
-        // ID'S
+            sharedPreferences.edit().putString("email", email).putString("password", password).apply()
+        }
+
+
         val forgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
         val register = findViewById<TextView>(R.id.tvRegister)
         val loginButton = findViewById<Button>(R.id.btnLogin)
@@ -62,7 +67,7 @@ class Login : AppCompatActivity() {
     }
     // GETTING INPUT FROM USE
     private fun performLogin(){
-        val email = findViewById<EditText>(R.id.tvFullName)
+        val email = findViewById<EditText>(R.id.inputEmail)
         val password = findViewById<EditText>(R.id.inputPassword)
 
         // CHECK FOR NULL INPUT
@@ -74,28 +79,27 @@ class Login : AppCompatActivity() {
         val emailCheck = email.text.toString()
         val passwordCheck = password.text.toString()
 
-        auth.signInWithEmailAndPassword(emailCheck, passwordCheck)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-                    Log.d(TAG, "signInWithEmail:success")
-                    val user = auth.currentUser
+        auth.signInWithEmailAndPassword(emailCheck, passwordCheck).addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d(TAG, "signInWithEmail:success")
+                val user = auth.currentUser
+                val isChecked = sharedPreferences.getBoolean("rememberMe", false)
 
+                if (isChecked) {
                     // redirect to Main Activity
                     // PROCEED ON BIRDS EYE VIEW
                     // Toast.makeText(this, "You are now logged in.", Toast.LENGTH_SHORT).show()
-                   val openBirdsEyeView = Intent(this@Login, BirdsEyeView::class.java)
+                    val openBirdsEyeView = Intent(this@Login, BirdsEyeView::class.java)
                     startActivity(openBirdsEyeView)
                     finish()
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.w(TAG, "signInWithEmail:failure", task.exception)
-                    Toast.makeText(
-                        baseContext,
-                        "Authentication failed.",
-                        Toast.LENGTH_SHORT,
-                    ).show()
                 }
+            } else {
+                // If sign in fails, display a message to the user.
+                Log.w(TAG, "signInWithEmail:failure", task.exception)
+                Toast.makeText(
+                    baseContext, "Authentication failed.", Toast.LENGTH_SHORT,).show()
             }
+        }
     }
 }
