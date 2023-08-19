@@ -154,6 +154,7 @@ class RegistrationSecondPart : AppCompatActivity() {
                             Log.w("FIREBASE_DB_LOG", "Adding User to DB:Success")
                             val openLogin = Intent(this@RegistrationSecondPart, Login::class.java)
                             startActivity(openLogin)
+                            finish()
                         }
                         .addOnFailureListener {
                             Log.w("FIREBASE_DB_LOG", "Adding User to DB:failure", it)

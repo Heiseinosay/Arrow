@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.os.IResultReceiver._Parcel
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -17,8 +18,10 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.auth.User
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.firestore.ktx.firestore
 import org.w3c.dom.Text
@@ -36,7 +39,6 @@ open class Registration : AppCompatActivity() {
         login.setOnClickListener {
             val openLogin = Intent(this@Registration, Login::class.java)
             startActivity(openLogin)
-
         }
 
         val getStartedBtn = findViewById<Button>(R.id.btnSignUp)
@@ -46,12 +48,18 @@ open class Registration : AppCompatActivity() {
             val pass = findViewById<EditText>(R.id.tvPassword).text.toString().trim()
             if(email.isNotEmpty() && name.isNotEmpty() && pass.isNotEmpty()){
                 if(canContinue){
-                    Toast.makeText(this,"It Works", Toast.LENGTH_SHORT).show()
-                    /* val openReg2 = Intent(this@Registration, RegistrationSecondPart::class.java)
-                    openReg2.putExtra("Info", name)
-                    openReg2.putExtra("Email", email)
-                    openReg2.putExtra("Password", pass)
-                    startActivity(openReg2)*/
+                    // CHECK IF EMAIL EXIST ON DB
+                    checkIfEmailExists(email) { emailExists ->
+                        if (emailExists) {
+                            Toast.makeText(this, "Email already exists", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val openReg2 = Intent(this@Registration, RegistrationSecondPart::class.java)
+                            openReg2.putExtra("Info", name)
+                            openReg2.putExtra("Email", email)
+                            openReg2.putExtra("Password", pass)
+                            startActivity(openReg2)
+                        }
+                    }
                 } else if (!passCheck1 || !passCheck2 || !passCheck3){
                     Toast.makeText(this,"The entered password is invalid.", Toast.LENGTH_SHORT).show()
                 }
@@ -147,9 +155,7 @@ open class Registration : AppCompatActivity() {
                 Log.d("TextWatcher", "Password text changed: $s")
                 passwordValidation(changedName.text.toString(), changedEmail.text.toString(), changedPassword.text.toString())
             }
-
             override fun afterTextChanged(s: Editable?) {
-
             }
         })
 
@@ -168,4 +174,26 @@ open class Registration : AppCompatActivity() {
             }
         })
     }
+    private fun checkIfEmailExists(email: String, callback: (Boolean) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("users")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val existing = !querySnapshot.isEmpty
+                callback(existing)
+            }
+            .addOnFailureListener { exception ->
+                // Handle the failure
+                Log.w("FIREBASE_DB_LOG", "Adding User to DB:failure")
+                Toast.makeText(
+                    baseContext,
+                    "Connection failed.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                callback(false) // Indicate failure
+            }
+    }
+
+
 }

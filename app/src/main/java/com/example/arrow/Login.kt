@@ -2,7 +2,6 @@ package com.example.arrow
 
 import android.content.ContentValues.TAG
 import android.content.Intent
-import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -26,8 +25,6 @@ class Login : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
-
-//        this.onBackPressed ()
 
         // SET STATUS BAR COLOR
         val window: Window = window
@@ -58,10 +55,9 @@ class Login : AppCompatActivity() {
             startActivity(openRegister)
         }
         loginButton.setOnClickListener { performLogin() }
-
     }
     // GETTING INPUT FROM USE
-    private fun performLogin(){
+    private fun performLogin() {
         val email = findViewById<EditText>(R.id.tvFullName)
         val password = findViewById<EditText>(R.id.inputPassword)
 
@@ -70,7 +66,6 @@ class Login : AppCompatActivity() {
             Toast.makeText(this, "Email or Password field must not be empty.", Toast.LENGTH_SHORT).show()
             return
         }
-
         val emailCheck = email.text.toString()
         val passwordCheck = password.text.toString()
 
@@ -84,17 +79,16 @@ class Login : AppCompatActivity() {
                     // redirect to Main Activity
                     // PROCEED ON BIRDS EYE VIEW
                     // Toast.makeText(this, "You are now logged in.", Toast.LENGTH_SHORT).show()
-                   val openBirdsEyeView = Intent(this@Login, BirdsEyeView::class.java)
+                    val openBirdsEyeView = Intent(this@Login, BirdsEyeView::class.java)
                     startActivity(openBirdsEyeView)
                     finish()
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "signInWithEmail:failure", task.exception)
-                    Toast.makeText(
-                        baseContext,
-                        "Authentication failed.",
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    // Toast.makeText(baseContext,"Authentication failed.", Toast.LENGTH_SHORT,).show()
+                    val info = findViewById<TextView>(R.id.tvInfo)
+                    info.text = "Invalid username or password"
+
                 }
             }
     }
