@@ -38,6 +38,9 @@ class Login : AppCompatActivity() {
 =======
     private lateinit var auth: FirebaseAuth
     private lateinit var sharedPreferences: SharedPreferences
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
     class Login : AppCompatActivity() {
@@ -52,6 +55,7 @@ class Login : AppCompatActivity() {
         setContentView(R.layout.activity_login)
         // TODO: connect database and add functional query
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         auth = Firebase.auth
 =======
@@ -95,6 +99,8 @@ class Login : AppCompatActivity() {
             }
             loginButton.setOnClickListener { performLogin() }
 =======
+=======
+>>>>>>> Stashed changes
         //        this.onBackPressed ()
 
         // SET STATUS BAR COLOR
@@ -158,6 +164,7 @@ class Login : AppCompatActivity() {
             }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             val emailCheck = email.text.toString()
             val passwordCheck = password.text.toString()
 >>>>>>> Stashed changes
@@ -205,11 +212,25 @@ class Login : AppCompatActivity() {
 
                 if (isChecked) {
                     // redirect to Main Activity
+=======
+        auth.signInWithEmailAndPassword(emailCheck, passwordCheck).addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d(TAG, "signInWithEmail:success")
+                val user = auth.currentUser
+                val isChecked = sharedPreferences.getBoolean("rememberMe", false)
+
+                if (isChecked) {
+                    // redirect to Main Activity
+>>>>>>> Stashed changes
                     // PROCEED ON BIRDS EYE VIEW
                     // Toast.makeText(this, "You are now logged in.", Toast.LENGTH_SHORT).show()
                     val openBirdsEyeView = Intent(this@Login, BirdsEyeView::class.java)
                     startActivity(openBirdsEyeView)
                     finish()
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                 }
             } else {
@@ -220,6 +241,9 @@ class Login : AppCompatActivity() {
             }
         }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
     }
 =======
     }
