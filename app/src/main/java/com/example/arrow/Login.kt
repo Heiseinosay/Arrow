@@ -40,16 +40,6 @@ class Login : AppCompatActivity() {
 
         //save email and password
         sharedPreferences = getSharedPreferences("rememberMe", MODE_PRIVATE)
-        val checkBox = findViewById<CheckBox>(R.id.checkBox)
-        val isChecked = checkBox.isChecked
-
-        if (isChecked){
-            val email = findViewById<EditText>(R.id.inputEmail).text.toString()
-            val password = findViewById<EditText>(R.id.inputPassword).text.toString()
-
-            sharedPreferences.edit().putString("email", email).putString("password", password).apply()
-        }
-
 
         val forgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
         val register = findViewById<TextView>(R.id.tvRegister)
@@ -67,19 +57,23 @@ class Login : AppCompatActivity() {
     }
     // GETTING INPUT FROM USE
     private fun performLogin(){
-        val email = findViewById<EditText>(R.id.inputEmail)
-        val password = findViewById<EditText>(R.id.inputPassword)
+        val email = findViewById<EditText>(R.id.inputEmail).text.toString()
+        val password = findViewById<EditText>(R.id.inputPassword).text.toString()
 
         // CHECK FOR NULL INPUT
-        if (email.text.isEmpty() || password.text.isEmpty()) {
+        if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Email or Password field must not be empty.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val emailCheck = email.text.toString()
-        val passwordCheck = password.text.toString()
+        // IF CHECKBOX IS ON
+        val checkBox = findViewById<CheckBox>(R.id.checkBox)
 
-        auth.signInWithEmailAndPassword(emailCheck, passwordCheck).addOnCompleteListener(this) { task ->
+        if (checkBox.isChecked){
+            sharedPreferences.edit().putString("email", email).putString("password", password).apply()
+        }
+
+        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this) { task ->
             if (task.isSuccessful) {
                 // Sign in success, update UI with the signed-in user's information
                 Log.d(TAG, "signInWithEmail:success")
