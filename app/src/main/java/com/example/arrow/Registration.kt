@@ -1,20 +1,32 @@
 package com.example.arrow
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
+import androidx.core.widget.addTextChangedListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.firestore.ktx.firestore
+import org.w3c.dom.Text
 
 open class Registration : AppCompatActivity() {
+
+    var passCheck1: Boolean = false; var passCheck2: Boolean = false
+    var passCheck3: Boolean = false; var canContinue: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,56 +34,138 @@ open class Registration : AppCompatActivity() {
 
         val login = findViewById<TextView>(R.id.tvLogin)
         login.setOnClickListener {
-            //val openLogin = Intent(this@Registration, Login::class.java)
-            //startActivity(openLogin)
-            this.onBackPressed ()
-            finish()
-        }
+            val openLogin = Intent(this@Registration, Login::class.java)
+            startActivity(openLogin)
 
+        }
 
         val getStartedBtn = findViewById<Button>(R.id.btnSignUp)
         getStartedBtn.setOnClickListener {
             val email = findViewById<EditText>(R.id.tvEmail).text.toString().trim()
             val name = findViewById<EditText>(R.id.tvFullName).text.toString().trim()
             val pass = findViewById<EditText>(R.id.tvPassword).text.toString().trim()
-
-            if (email.isEmpty() || name.isEmpty() || pass.isEmpty()) {
-                Toast.makeText(applicationContext,"Fields cannot be empty",Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            if(email.isNotEmpty() && name.isNotEmpty() && pass.isNotEmpty()){
+                if(canContinue){
+                    Toast.makeText(this,"It Works", Toast.LENGTH_SHORT).show()
+                    /* val openReg2 = Intent(this@Registration, RegistrationSecondPart::class.java)
+                    openReg2.putExtra("Info", name)
+                    openReg2.putExtra("Email", email)
+                    openReg2.putExtra("Password", pass)
+                    startActivity(openReg2)*/
+                } else if (!passCheck1 || !passCheck2 || !passCheck3){
+                    Toast.makeText(this,"The entered password is invalid.", Toast.LENGTH_SHORT).show()
+                }
+            } else{
+                Toast.makeText(this, "All fields must not be empty.", Toast.LENGTH_SHORT).show()
             }
+        }
 
-            // TODO: check if email is in email format
+        // To check password if valid
+        // passwordValidation(pass, email, name)
+        contChange()
+    }
 
-            if (!checkPass(pass)) {
-                // TODO: change text
-                Toast.makeText(applicationContext,"Password format is wrong",Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+    // To validate input password
+    @SuppressLint("ResourceAsColor")
+    private fun passwordValidation(name: String, email: String, passwordCheck: String  ) {
+        val passValidation1 = findViewById<CardView>(R.id.valid1)
+        val passValidation2 = findViewById<CardView>(R.id.valid2)
+        val passValidation3 = findViewById<CardView>(R.id.valid3)
+        val passText1 = findViewById<TextView>(R.id.tvValidation1)
+        val passText2 = findViewById<TextView>(R.id.tvValidation2)
+        val passText3 = findViewById<TextView>(R.id.tvValidation3)
 
-            val openReg2 = Intent(this@Registration, RegistrationSecondPart::class.java)
-            openReg2.putExtra("Info", name)
-            openReg2.putExtra("Email", email)
-            openReg2.putExtra("Password", pass)
-            startActivity(openReg2)
+        if (passwordCheck.length >= 8){
+            passValidation1.setCardBackgroundColor(ContextCompat.getColor(this, R.color.blue))
+            passText1.setTextColor(ContextCompat.getColor(this,R.color.blue))
+            passCheck1 = true
+        } else {
+            passValidation1.setCardBackgroundColor(ContextCompat.getColor(this, R.color.darkGrey))
+            passText1.setTextColor(ContextCompat.getColor(this,R.color.darkGrey))
+            passCheck1 = false
+
+        }
+
+        if (("^.*[A-Z].*$").toRegex().matches(passwordCheck)){
+            passValidation2.setCardBackgroundColor(ContextCompat.getColor(this, R.color.blue))
+            passText2.setTextColor(ContextCompat.getColor(this,R.color.blue))
+            passCheck2 = true
+        } else {
+            passValidation2.setCardBackgroundColor(ContextCompat.getColor(this, R.color.darkGrey))
+            passText2.setTextColor(ContextCompat.getColor(this,R.color.darkGrey))
+            passCheck2 = false
+        }
+
+        if(("^.*[0-9].*$").toRegex().matches(passwordCheck)){
+            passValidation3.setCardBackgroundColor(ContextCompat.getColor(this, R.color.blue))
+            passText3.setTextColor(ContextCompat.getColor(this,R.color.blue))
+            passCheck3 = true
+        } else {
+            passValidation3.setCardBackgroundColor(ContextCompat.getColor(this, R.color.darkGrey))
+            passText3.setTextColor(ContextCompat.getColor(this,R.color.darkGrey))
+            passCheck3 = false
+        }
+
+        checkAll(name, email)
+    }
+
+    private fun checkAll(name: String, email: String){
+        if (passCheck1 && passCheck2 && passCheck3 && email.isNotEmpty()  && name.isNotEmpty()){
+            canContinue = true
+        } else{
+            canContinue = false
         }
     }
 
-    fun checkPass(password: String): Boolean {
-        var upperCount = 0
-        var numCount = 0
-        var charCount = 0
-        password.forEach {
-            if (it.isUpperCase()) {
-                upperCount++
+    // To constantly check the changes in password edit
+    private fun contChange(){
+        val changedName = findViewById<EditText>(R.id.tvFullName)
+        val changedEmail = findViewById<EditText>(R.id.tvEmail)
+        val changedPassword = findViewById<EditText>(R.id.tvPassword)
+
+        changedName.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
             }
-            if (it.isDigit()) {
-                numCount++
+
+            override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                Log.d("TextWatcher", "Password text changed: $s")
+                passwordValidation(changedName.text.toString(), changedEmail.text.toString(), changedPassword.text.toString())
             }
-            charCount++
-        }
-        if (upperCount >= 1 && numCount >= 1 && charCount >= 8) {
-            return true
-        }
-        return false
+
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+        })
+
+        changedEmail.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                Log.d("TextWatcher", "Password text changed: $s")
+                passwordValidation(changedName.text.toString(), changedEmail.text.toString(), changedPassword.text.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+        })
+
+        changedPassword.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                Log.d("TextWatcher", "Password text changed: $s")
+                passwordValidation(changedName.text.toString(), changedEmail.text.toString(), changedPassword.text.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+        })
     }
 }

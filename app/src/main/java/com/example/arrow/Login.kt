@@ -2,6 +2,7 @@ package com.example.arrow
 
 import android.content.ContentValues.TAG
 import android.content.Intent
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +16,7 @@ import com.google.firebase.ktx.Firebase
 
 import android.view.Window
 import android.view.WindowManager
+import android.widget.CheckBox
 import androidx.core.content.ContextCompat
 
 class Login : AppCompatActivity() {
@@ -32,7 +34,17 @@ class Login : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         window.statusBarColor = ContextCompat.getColor(this, R.color.red)
 
+        //Firebase
         auth = Firebase.auth
+        // var firebaseAuth = FirebaseAuth.getInstance()
+        //var firebaseUser = auth.currentUser
+
+        //save email and password
+        val checkBox = findViewById<CheckBox>(R.id.checkBox)
+
+        /* val FILE_EMAIL = "rememberMe"
+        SharedPreferences sharedPreferences = getSharedPreferences(FILE_EMAIL, MODE_PRIVATE) */
+
         // ID'S
         val forgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
         val register = findViewById<TextView>(R.id.tvRegister)
