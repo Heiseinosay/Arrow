@@ -54,7 +54,7 @@ import java.util.jar.Pack200.Packer
 class Map : AppCompatActivity() {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
     // Location provider
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+//    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -74,9 +74,9 @@ class Map : AppCompatActivity() {
             )
             { permissions ->
                 val allPermissionsGranted = permissions.all { it.value }
-                if (permissions[PERMISSIONS[0]] ?: false && permissions[PERMISSIONS[1]] ?: false ) {
-                    setupLocationProvider()
-                }
+//                if (permissions[PERMISSIONS[0]] ?: false && permissions[PERMISSIONS[1]] ?: false ) {
+//                    setupLocationProvider()
+//                }
                 if (allPermissionsGranted) {
                     Toast.makeText( applicationContext, "Permission Granted", Toast.LENGTH_SHORT).show()
                 }
@@ -96,6 +96,7 @@ class Map : AppCompatActivity() {
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
+
                 val camera = CameraOptions.Builder()
                     .center(Point.fromLngLat(120.98945,14.60195))
                     .zoom(15.0)
@@ -185,24 +186,25 @@ class Map : AppCompatActivity() {
         locationComponentPlugin?.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
         locationComponentPlugin?.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
     }
-    private fun setupLocationProvider() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        Log.i("LOCATION_PROVIDER","Initialized")
 
-        if (ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) !=
-            PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) !=
-            PackageManager.PERMISSION_GRANTED) {
-            reqPermissionLauncher.launch(PERMISSIONS)
-            Log.i("LOCATION_PROVIDER","Ask Permission")
-        }
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location : Location? ->
-                if (location != null) {
-                    Log.i("LOCATION_PROVIDER","Latitude: ${location?.latitude} Longtitude: ${location?.longitude}")
-                }
-            }
-    }
+//    private fun setupLocationProvider() {
+//        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+//        Log.i("LOCATION_PROVIDER","Initialized")
+//
+//        if (ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) !=
+//            PackageManager.PERMISSION_GRANTED &&
+//            ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) !=
+//            PackageManager.PERMISSION_GRANTED) {
+//            reqPermissionLauncher.launch(PERMISSIONS)
+//            Log.i("LOCATION_PROVIDER","Ask Permission")
+//        }
+//        fusedLocationClient.lastLocation
+//            .addOnSuccessListener { location : Location? ->
+//                if (location != null) {
+//                    Log.i("LOCATION_PROVIDER","Latitude: ${location?.latitude} Longtitude: ${location?.longitude}")
+//                }
+//            }
+//    }
 
     private fun addAnnotationToMap(longtitude: Double, latitude: Double) {
         bitmapFromDrawableRes(
