@@ -4,7 +4,15 @@
         "ccss-building": {
             "source": "mapbox://tileset-source/mark-asuncion/ccss-building",
             "minzoom": 8,
-            "maxzoom": 16
+            "maxzoom": 16,
+            "features": {
+                "simplification": [
+                    "case",
+                    ["==", ["geometry-type"], "Polygon"],
+                    0,
+                    10
+                ]
+            }
         }
     }
 }
