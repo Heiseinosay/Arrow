@@ -10,13 +10,15 @@ function create-tile {
     tilesets upload-source mark-asuncion "$1" "$2" && \
         tilesets create mark-asuncion."$1" --recipe "$3" --name "$1" && \
         tilesets publish mark-asuncion."$1"
+    echo "$(date):: creating tile with: name=${1} geojson=${2} recipe=${3}" | tee -a arrow.log
 }
 
 if [ "$1" == "get" ]; then
     curl -O "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/16/54793/30080.mvt?style=mapbox://styles/mapbox/streets-v12@00&access_token=$MAPBOX_ACCESS_TOKEN"
 elif [ "$1" == "delete" ]; then
     if [ -n "$2" ]; then
-        curl -X DELETE "https://api.mapbox.com/tilesets/v1/sources/mark-asuncion/${2}?access_token=${MAPBOX_ACCESS_TOKEN}"
+        tilesets delete-source mark-asuncion "$2"
+        # curl -X DELETE "https://api.mapbox.com/tilesets/v1/sources/mark-asuncion/${2}?access_token=${MAPBOX_ACCESS_TOKEN}"
         echo "$(date):: deleting: ${2}" | tee -a arrow.log
     fi
 elif [ "$1" == "list" ]; then
