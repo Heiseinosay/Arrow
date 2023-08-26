@@ -30,6 +30,7 @@ class RegistrationSecondPart : AppCompatActivity() {
     private var user: FirebaseUser? = null
     private var classStatus = -1
     private lateinit var role: String
+
     @SuppressLint("ResourceAsColor")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

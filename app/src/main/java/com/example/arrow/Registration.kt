@@ -2,29 +2,18 @@ package com.example.arrow
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v4.os.IResultReceiver._Parcel
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
-import androidx.core.widget.addTextChangedListener
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.auth.User
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.firestore.ktx.firestore
-import org.w3c.dom.Text
 
 open class Registration : AppCompatActivity() {
 
@@ -35,16 +24,19 @@ open class Registration : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration)
 
+        // SET PHONE BACK FUNCTION
         val login = findViewById<TextView>(R.id.tvLogin)
         login.setOnClickListener {
-            val openLogin = Intent(this@Registration, Login::class.java)
-            startActivity(openLogin)
+            //val openLogin = Intent(this@Registration, Login::class.java)
+            //startActivity(openLogin)
+            this.onBackPressed ()
+            finish()
         }
 
         val getStartedBtn = findViewById<Button>(R.id.btnSignUp)
         getStartedBtn.setOnClickListener {
             val email = findViewById<EditText>(R.id.tvEmail).text.toString().trim()
-            val name = findViewById<EditText>(R.id.tvFullName).text.toString().trim()
+            val name = findViewById<EditText>(R.id.inputEmail).text.toString().trim()
             val pass = findViewById<EditText>(R.id.tvPassword).text.toString().trim()
             if(email.isNotEmpty() && name.isNotEmpty() && pass.isNotEmpty()){
                 if(canContinue){
@@ -127,7 +119,7 @@ open class Registration : AppCompatActivity() {
 
     // To constantly check the changes in password edit
     private fun contChange(){
-        val changedName = findViewById<EditText>(R.id.tvFullName)
+        val changedName = findViewById<EditText>(R.id.inputEmail)
         val changedEmail = findViewById<EditText>(R.id.tvEmail)
         val changedPassword = findViewById<EditText>(R.id.tvPassword)
 
