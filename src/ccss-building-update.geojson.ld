@@ -1,0 +1,1 @@
+{"type":"Feature","id":1,"properties":{"NAME":"CCSS Building","desc":"Ground floor of CCSS Building","floor":"Ground Floor","use-pattern":"false"},"geometry":{"type":"Polygon","coordinates":[[[120.989968, 14.602028],[120.989799, 14.601969],[120.989933, 14.601611],[120.990101, 14.601671],[120.989968, 14.602028]]]}}

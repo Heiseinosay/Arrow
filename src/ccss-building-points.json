@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "layers": {
+        "ccss-building": {
+            "source": "mapbox://tileset-source/mark-asuncion/ccss-building-points",
+            "minzoom": 0,
+            "maxzoom": 16
+        }
+    }
+}
