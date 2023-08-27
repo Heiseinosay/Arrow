@@ -1,8 +1,13 @@
 {
     "version": 1,
     "layers": {
-        "ccss-building": {
-            "source": "mapbox://tileset-source/mark-asuncion/ccss-building",
+        "ccss-ground-points": {
+            "source": "mapbox://tileset-source/mark-asuncion/ccss-ground-points",
+            "minzoom": 0,
+            "maxzoom": 16
+        },
+        "ccss-ground-poly": {
+            "source": "mapbox://tileset-source/mark-asuncion/ccss-ground-poly",
             "minzoom": 0,
             "maxzoom": 16,
             "features": {

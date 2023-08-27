@@ -1,3 +1,0 @@
-/* WARN: READ ONLY FILE */
-{"type":"Feature","id":1,"properties":{"NAME":"CCSS Building","desc":"Ground floor of CCSS Building","floor":"Ground Floor"},"geometry":{"type":"Polygon","coordinates":[[[120.989968, 14.602028],[120.989799, 14.601969],[120.989933, 14.601611],[120.990101, 14.601671],[120.989968, 14.602028]]]}}
-{"type":"Feature","id":2,"properties":{"NAME":"Stairs","desc":"Stairs in Ground floor of CCSS Building","floor":"Ground Floor","use-pattern":"false"},"geometry":{"type":"Polygon","coordinates":[[[120.9898953, 14.6017120],[120.9899249, 14.6016346],[120.9900015, 14.6016597],[120.9899713, 14.6017361],[120.9898953, 14.6017120]]]}}

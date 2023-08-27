@@ -1,1 +1,0 @@
-{"type":"Feature","id":1,"properties":{"NAME":"Stairs","desc":"Stairs in Ground floor of CCSS Building","floor":"Ground Floor","use-pattern":"true"},"geometry":{"type":"Point","coordinates":[120.9899467, 14.6016853]}}
