@@ -3,3 +3,6 @@ k
 setup-env.sh
 example/
 *.log
+*.qmd
+*.bak
+ig*
