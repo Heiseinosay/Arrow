@@ -2,6 +2,8 @@
 - to install run ```pip install mapbox-tilesets```
 # convert to line delimited geojson
 - install ```pip install fiona```
+# Download [QGIS](https://qgis.org/en/site/) to edit qgz file
+
 # Coordinates of UE
 ```
 #18.16/14.601877/120.990027
