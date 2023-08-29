@@ -22,7 +22,11 @@ elif [ "$1" == "delete" ]; then
         echo "$(date):: deleting: ${2}" | tee -a arrow.log
     fi
 elif [ "$1" == "list" ]; then
-    tilesets list mark-asuncion
+    if [[ $2 == "sources" || $2 == "source" ]]; then
+        tilesets list-sources mark-asuncion
+    else
+        tilesets list mark-asuncion
+    fi
 elif [ "$1" == "upload" ]; then
     if [[ -n $2 && -n $3 ]]; then
         tilesets upload-source mark-asuncion "$2" "$3"

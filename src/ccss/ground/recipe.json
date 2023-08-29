@@ -1,7 +1,12 @@
 {
     "version": 1,
     "layers": {
-        "ccss-ground-poly": {
+        "ccss-ground-ground": {
+            "source": "mapbox://tileset-source/mark-asuncion/ccss-ground-poly",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "ccss-ground-rooms": {
             "source": "mapbox://tileset-source/mark-asuncion/ccss-ground-poly",
             "minzoom": 8,
             "maxzoom": 16
