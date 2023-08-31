@@ -33,6 +33,9 @@ import com.mapbox.maps.CoordinateBounds
 import com.mapbox.maps.FreeCameraOptions
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
+import com.mapbox.maps.extension.style.layers.generated.FillLayer
+import com.mapbox.maps.extension.style.layers.generated.SymbolLayer
+import com.mapbox.maps.extension.style.layers.getLayerAs
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
@@ -42,19 +45,9 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
-import java.util.jar.Pack200.Packer
-
-//import org.osmdroid.config.Configuration.*
-//import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-//import org.osmdroid.util.GeoPoint
-//import org.osmdroid.views.MapController
-//import org.osmdroid.views.MapView
-//import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 
 class Map : AppCompatActivity() {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
-    // Location provider
-//    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -74,9 +67,6 @@ class Map : AppCompatActivity() {
             )
             { permissions ->
                 val allPermissionsGranted = permissions.all { it.value }
-//                if (permissions[PERMISSIONS[0]] ?: false && permissions[PERMISSIONS[1]] ?: false ) {
-//                    setupLocationProvider()
-//                }
                 if (allPermissionsGranted) {
                     Toast.makeText( applicationContext, "Permission Granted", Toast.LENGTH_SHORT).show()
                 }
@@ -92,7 +82,7 @@ class Map : AppCompatActivity() {
         onMapReady()
     }
     private fun onMapReady() {
-        mapboxMap?.loadStyleUri(Style.MAPBOX_STREETS,object : Style.OnStyleLoaded {
+        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clluwyesj006501rabdba3vi7" ,object: Style.OnStyleLoaded {
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
@@ -106,10 +96,11 @@ class Map : AppCompatActivity() {
                 val southwest = Point.fromLngLat(120.98452,14.59990)
                 val northeast = Point.fromLngLat(120.99466,14.60415)
 
-//                val coordBound = CoordinateBounds(southwest,northeast)
-//                val cmBounds: CameraBoundsOptions.Builder = CameraBoundsOptions.Builder()
-//                cmBounds.bounds(coordBound)
-//                mapboxMap?.setBounds(cmBounds.build())
+                // set bounds
+                val coordBound = CoordinateBounds(southwest,northeast)
+                val cmBounds: CameraBoundsOptions.Builder = CameraBoundsOptions.Builder()
+                cmBounds.bounds(coordBound)
+                mapboxMap?.setBounds(cmBounds.build())
 
                 addAnnotationToMap(southwest.longitude(),southwest.latitude())
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
@@ -187,25 +178,6 @@ class Map : AppCompatActivity() {
         locationComponentPlugin?.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
     }
 
-//    private fun setupLocationProvider() {
-//        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-//        Log.i("LOCATION_PROVIDER","Initialized")
-//
-//        if (ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) !=
-//            PackageManager.PERMISSION_GRANTED &&
-//            ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) !=
-//            PackageManager.PERMISSION_GRANTED) {
-//            reqPermissionLauncher.launch(PERMISSIONS)
-//            Log.i("LOCATION_PROVIDER","Ask Permission")
-//        }
-//        fusedLocationClient.lastLocation
-//            .addOnSuccessListener { location : Location? ->
-//                if (location != null) {
-//                    Log.i("LOCATION_PROVIDER","Latitude: ${location?.latitude} Longtitude: ${location?.longitude}")
-//                }
-//            }
-//    }
-
     private fun addAnnotationToMap(longtitude: Double, latitude: Double) {
         bitmapFromDrawableRes(
             this@Map,
@@ -217,7 +189,6 @@ class Map : AppCompatActivity() {
                 .withPoint(Point.fromLngLat(longtitude, latitude))
                 .withIconImage(it)
 
-            Toast.makeText(applicationContext,"Drawing Icon",Toast.LENGTH_LONG).show()
             pointAnnotationManager?.create(pointAnnotationOptions)
         }
     }
