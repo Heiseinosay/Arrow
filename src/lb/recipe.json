@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "layers": {
+        "lb-ground": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-ground",
+            "minzoom": 8,
+            "maxzoom": 16
+        }
+    }
+}
