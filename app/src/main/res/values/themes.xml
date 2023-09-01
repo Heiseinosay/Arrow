@@ -7,5 +7,10 @@
         <item name="android:statusBarColor">@color/white</item>
     </style>
 
+    <style name="checkBoxStyle" parent="Base.Theme.AppCompat">
+        <item name="colorAccent">@color/darkRed</item>
+<!--        <item name="android:textColorSecondary">UNCHECKEDCOLOR</item>-->
+    </style>
+
     <style name="Theme.Arrow" parent="Base.Theme.Arrow" />
 </resources>

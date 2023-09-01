@@ -25,14 +25,16 @@
         android:theme="@style/Theme.Arrow"
         tools:targetApi="31">
         <activity
-            android:name="com.example.arrow.Map"
+            android:name=".BirdsEyeView"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".RegistrationSecondPart"
             android:exported="false" />
         <activity
-            android:name="com.example.arrow.RegistrationSecondPart"
-            android:exported="false" />
-        <activity
-            android:name="com.example.arrow.Loading"
-            android:exported="true">
+            android:name=".Loading"
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -40,12 +42,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.arrow.Registration"
-            android:exported="false" />
-        <activity
             android:name="com.example.arrow.Login"
             android:exported="false"
-            android:theme="@style/CustomTheme" />
+            android:theme="@style/CustomTheme"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

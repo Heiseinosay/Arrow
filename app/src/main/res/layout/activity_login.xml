@@ -26,12 +26,28 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <CheckBox
+                android:theme="@style/checkBoxStyle"
+                android:id="@+id/checkBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/darkRed"
+                android:text="Remember me"
+                android:textColor="@color/black"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.236"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.572" />
+
             <Button
                 android:id="@+id/btnLogin"
                 android:layout_width="268dp"
                 android:layout_height="59dp"
                 android:backgroundTint="@color/red"
                 android:text="LOGIN"
+
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.496"
@@ -57,6 +73,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Don't have an account?"
+                android:textColor="@color/black"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.358"
@@ -95,7 +112,7 @@
                     android:layout_height="match_parent">
 
                     <EditText
-                        android:id="@+id/tvFullName"
+                        android:id="@+id/inputEmail"
                         android:layout_width="230dp"
                         android:layout_height="44dp"
                         android:background="@android:color/transparent"
@@ -127,19 +144,28 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <EditText
-                        android:id="@+id/inputPassword"
-                        android:layout_width="230dp"
-                        android:layout_height="44dp"
-                        android:background="@android:color/transparent"
-                        android:ems="10"
-                        android:hint="Password"
-                        android:inputType="textPassword"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
                         android:textColorHint="@color/darkGrey"
+                        app:hintEnabled="false"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:passwordToggleEnabled="true">
+                        <!--app:passwordToggleDrawable="@drawable/ic_password_toggle">-->
+
+                        <EditText
+                            android:id="@+id/inputPassword"
+                            android:inputType="textPassword"
+                            android:hint="Password"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@android:color/transparent"
+                            android:ems="10"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </androidx.cardview.widget.CardView>
@@ -185,6 +211,17 @@
                 app:layout_constraintHorizontal_bias="0.53"
                 app:layout_constraintStart_toStartOf="parent"
                 app:srcCompat="@drawable/baseline_circle_24" />
+
+            <TextView
+                android:id="@+id/tvInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/red"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.32999998" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
