@@ -5,17 +5,13 @@ import android.os.Bundle
 import android.widget.SeekBar
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Handler
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import org.w3c.dom.Text
 
 class Loading : AppCompatActivity() {
     private val handler = Handler()
@@ -61,7 +57,7 @@ class Loading : AppCompatActivity() {
             seekBar.progress = progress
             if (progress >= 300) {
                 if(isConnected) {
-                    startActivity(Intent(this@Loading, Map::class.java))
+                    startActivity(Intent(this@Loading, Login::class.java))
 //                    startActivity(Intent(this@Loading, Login::class.java))
                     finish();
                 }
