@@ -61,7 +61,8 @@ class Loading : AppCompatActivity() {
             seekBar.progress = progress
             if (progress >= 300) {
                 if(isConnected) {
-                    startActivity(Intent(this@Loading, Login::class.java))
+                    startActivity(Intent(this@Loading, Map::class.java))
+//                    startActivity(Intent(this@Loading, Login::class.java))
                     finish();
                 }
             } else {
