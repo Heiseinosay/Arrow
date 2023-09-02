@@ -12,6 +12,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
+import android.location.LocationListener
 import android.util.Log
 //import android.preference.PreferenceManager
 import androidx.activity.result.ActivityResultLauncher
@@ -22,10 +23,18 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
+<<<<<<< Updated upstream
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+=======
+import com.mapbox.android.core.location.LocationEngine
+import com.mapbox.android.core.location.LocationEngineProvider
+import com.mapbox.android.core.location.LocationEngineCallback
+import com.mapbox.android.core.location.LocationEngineResult
+import com.mapbox.android.core.location.LocationEngineRequest
+>>>>>>> Stashed changes
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
@@ -42,6 +51,8 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
+import com.mapbox.maps.plugin.locationcomponent.LocationComponentPlugin
+import com.mapbox.maps.plugin.locationcomponent.LocationProvider
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
@@ -56,8 +67,12 @@ import java.util.jar.Pack200.Packer
 
 class Map : AppCompatActivity() {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
+<<<<<<< Updated upstream
     // Location provider
 //    private lateinit var fusedLocationClient: FusedLocationProviderClient
+=======
+    private lateinit var locationEngine: LocationEngine
+>>>>>>> Stashed changes
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -92,6 +107,8 @@ class Map : AppCompatActivity() {
         mapView = findViewById(R.id.mapView)
         mapboxMap = mapView?.getMapboxMap()
 
+        // fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         onMapReady()
     }
     private fun onMapReady() {
@@ -125,13 +142,14 @@ class Map : AppCompatActivity() {
         mapView?.gestures?.addOnMoveListener(onMoveListener)
     }
 
-    private val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener {
-        mapboxMap?.setCamera(CameraOptions.Builder().bearing(it).build())
+    private val onIndicatorBearingChangedListener = OnIndicatorBearingChangedListener { newBearing ->
+        mapboxMap?.setCamera(CameraOptions.Builder().bearing(newBearing).build())
     }
 
-    private val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+    private val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener { it
         mapboxMap?.setCamera(CameraOptions.Builder().center(it).build())
         mapView?.gestures?.focalPoint = mapboxMap?.pixelForCoordinate(it)
+
     }
 
     private val onMoveListener = object : OnMoveListener {
@@ -189,6 +207,8 @@ class Map : AppCompatActivity() {
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null)
 
         val locationComponentPlugin = mapView?.location
+        initLocationEngine()
+
         locationComponentPlugin?.updateSettings {
             this.enabled = true
             this.locationPuck = LocationPuck2D(
@@ -214,8 +234,38 @@ class Map : AppCompatActivity() {
                 }.toJson()
             )
         }
+
         locationComponentPlugin?.addOnIndicatorPositionChangedListener(onIndicatorPositionChangedListener)
         locationComponentPlugin?.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
+
+    }
+
+    private fun initLocationEngine(){
+        locationEngine = LocationEngineProvider.getBestLocationEngine(this)
+        val locationEngineRequest = LocationEngineRequest.Builder(1000)
+            .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY).build()
+
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        locationEngine.requestLocationUpdates(locationEngineRequest, callback, mainLooper)
+    }
+
+    private val callback = object : LocationEngineCallback<LocationEngineResult> {
+        override fun onSuccess(result: LocationEngineResult?) {
+            result?.lastLocation?.let { location ->
+            }
+        }
+        override fun onFailure(exception: Exception) {
+            // Handle location engine failure here
+        }
     }
 
     private val locationCallback = object : LocationCallback() {
