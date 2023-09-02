@@ -1,8 +1,33 @@
 {
     "version": 1,
     "layers": {
-        "lb-ground": {
-            "source": "mapbox://tileset-source/mark-asuncion/lb-ground",
+        "lb-elevator": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-elevator",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-stairs": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-stairs",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-escalator": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-escalator",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-gate": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-gate",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-rooms": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-rooms",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-cr": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-cr",
             "minzoom": 8,
             "maxzoom": 16
         }
