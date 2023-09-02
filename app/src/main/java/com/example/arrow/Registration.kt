@@ -61,7 +61,6 @@ open class Registration : AppCompatActivity() {
         }
 
         // To check password if valid
-        // passwordValidation(pass, email, name)
         contChange()
     }
 
