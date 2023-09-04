@@ -28,6 +28,14 @@ elif [ "$1" == "list" ]; then
         tilesets list mark-asuncion
     fi
 elif [ "$1" == "upload" ]; then
+    if [[ $2 == "lb" ]]; then
+        tilesets upload-source mark-asuncion lb-elevator src/lb/elevator.geojson.ld
+        tilesets upload-source mark-asuncion lb-stairs src/lb/stairs.geojson.ld
+        tilesets upload-source mark-asuncion lb-escalator src/lb/escalator.geojson.ld
+        tilesets upload-source mark-asuncion lb-gate src/lb/gate.geojson.ld
+        tilesets upload-source mark-asuncion lb-rooms src/lb/rooms.geojson.ld
+        tilesets upload-source mark-asuncion lb-cr src/lb/cr.geojson.ld
+    fi
     if [[ -n $2 && -n $3 ]]; then
         tilesets upload-source mark-asuncion "$2" "$3"
         echo "$(date):: upload with name: ${2}" | tee -a arrow.log
