@@ -34,6 +34,7 @@ import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.LineLayer
+import com.mapbox.maps.extension.style.layers.generated.SymbolLayer
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
@@ -56,6 +57,7 @@ import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.sources.getSource
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.extension.style.utils.ColorUtils
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 
 class BirdsEyeView : AppCompatActivity() {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
@@ -238,6 +240,7 @@ class BirdsEyeView : AppCompatActivity() {
     }
 
     fun explorationView(style: Style){
+        // Line Coordinates
         val coordinates = listOf(
             Point.fromLngLat(120.99062060085, 14.6019655071744),
             Point.fromLngLat(120.990585732133, 14.6019525292989),
@@ -276,38 +279,105 @@ class BirdsEyeView : AppCompatActivity() {
             Point.fromLngLat(120.989800878831, 14.602423342153),
             Point.fromLngLat(120.989786126682, 14.6024570845554),
             Point.fromLngLat(120.989768692323, 14.6024882313838),
-            )
+        )
+
         val lineString = LineString.fromLngLats(coordinates)
         val feature = Feature.fromGeometry(lineString)
         val featureCollection = FeatureCollection.fromFeature(feature)
         val geoJson = featureCollection.toJson()
-        val geoJsonSourceId = "userDrawnLinesSource"
+        val geoJsonSourceId = "explorationViewLinesSource"
         val geoJsonSource = GeoJsonSource.Builder(geoJsonSourceId)
             .data(geoJson)
             .build()
 
         style.addSource(geoJsonSource)
+
+        /*Line geoJson Log Check
         if (style.getSource(geoJsonSourceId) != null) {
             Log.d("LineLayer", geoJson)
         } else {
             Log.e("LineLayer", "GeoJson source not added.")
-        }
-        val lineColor = ContextCompat.getColor(this@BirdsEyeView, R.color.blue)
+        }*/
+
         style.addLayer(
-            LineLayer("userDrawnLinesLayer", "userDrawnLinesSource").apply {
+            LineLayer("explorationViewLinesLayer", "explorationViewLinesSource").apply {
                     lineCap(LineCap.ROUND)
                     lineJoin(LineJoin.ROUND)
                     lineOpacity(0.7)
                     lineWidth(3.0)
-                    lineColor(lineColor)
+                    lineColor(ContextCompat.getColor(this@BirdsEyeView, R.color.blue))
             }
         )
+        val layersIdToQuery = listOf("explorationViewLinesLayer")
 
+        mapboxMap?.addOnMapClickListener { point ->
+            val screenPoint = mapboxMap.getProjection().toScreenLocation(point)
+            val features = mapboxMap.queryRenderedFeatures(screenPoint, layersIdToQuery)
+
+            if (!features.isNullOrEmpty()) {
+                // Handle the clicked feature(s) here
+                for (feature in features) {
+                    // You can access properties of the clicked feature like this:
+                    val title = feature.getStringProperty("title")
+                    // Do something with the title or other properties
+                    Toast.makeText(this, "You selected $title", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        /*LineLayer Log Check
         if (style.getLayer("userDrawnLinesLayer") != null) {
             Log.d("LineLayer", LineLayer.toString())
         } else {
             Log.e("LineLayer", "LineLayer not added.")
-        }
+        }*/
+
+        /* Clickable Symbol Layer deins gumagana
+        for (i in 0 until coordinates.size - 1) {
+            val startCoord = coordinates[i]
+            val endCoord = coordinates[i + 1]
+
+            // Unique symbol ID for each segment
+            val symbolId = "lineSegment_$i"
+
+
+            val symbolFeature = Feature.fromGeometry(LineString.fromLngLats(listOf(startCoord, endCoord)))
+            val symbolFeatureCollection = FeatureCollection.fromFeature(symbolFeature)
+            val symbolGeoJson = symbolFeatureCollection.toJson()
+            val symbolGeoJsonSourceId = "explorationViewSymbolSource"
+            val symbolGeoJsonSource = GeoJsonSource.Builder(symbolGeoJsonSourceId)
+                .data(symbolGeoJson)
+                .build()
+
+            style.addSource(symbolGeoJsonSource)
+
+            style.addLayer(
+                SymbolLayer(symbolId, "explorationViewSymbolSource").apply {
+                    iconImage("invisible-icon")
+                    iconOpacity(0.0)
+                    iconAllowOverlap(true)
+                }
+            )
+            if (style.getLayer("explorationViewSymbolSource") != null) {
+                Log.d("SymbolLayer", SymbolLayer.toString())
+            } else {
+                Log.e("SymbolLayer", "LineLayer not added.")
+            }
+
+            //When a line segment is clicked
+            mapView.addOnMapClickListener { point ->
+                val screenPoint = mapboxMap.getProjection().toScreenLocation(point)
+                val features = mapboxMap.queryRenderedFeatures(screenPoint,"explorationViewSymbolSource")
+
+                if (features.isNotEmpty()) {
+                    val clickedFeature = features[0]
+                    val segmentId = clickedFeature.getStringProperty("segmentId")
+                }
+
+                true
+            }
+
+        }*/
     }
 }
 
