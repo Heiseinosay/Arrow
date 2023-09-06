@@ -31,6 +31,7 @@ import com.mapbox.maps.CameraBoundsOptions
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.CoordinateBounds
 import com.mapbox.maps.MapboxMap
+import com.mapbox.maps.QueryFeaturesCallback
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.LineLayer
@@ -52,11 +53,19 @@ import com.mapbox.maps.extension.style.layers.generated.lineLayer
 import com.mapbox.maps.extension.style.layers.getLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+import com.mapbox.maps.extension.style.projection.generated.Projection
+import com.mapbox.maps.extension.style.projection.generated.getProjection
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.sources.getSource
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.extension.style.utils.ColorUtils
+import com.mapbox.maps.plugin.annotation.AnnotationPlugin
+import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotation
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 
 class BirdsEyeView : AppCompatActivity() {
@@ -122,7 +131,7 @@ class BirdsEyeView : AppCompatActivity() {
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
                 addAnnotationToMap(camera.center!!.longitude(),camera.center!!.latitude())
 
-                explorationView(style)
+                explorationView()
             }
         })
     }
@@ -239,7 +248,8 @@ class BirdsEyeView : AppCompatActivity() {
         reqPermissionLauncher.launch(PERMISSIONS)
     }
 
-    fun explorationView(style: Style){
+    fun explorationView(){
+
         // Line Coordinates
         val coordinates = listOf(
             Point.fromLngLat(120.99062060085, 14.6019655071744),
@@ -281,6 +291,37 @@ class BirdsEyeView : AppCompatActivity() {
             Point.fromLngLat(120.989768692323, 14.6024882313838),
         )
 
+        /*val segmentClickListener = OnPolylineAnnotationClickListener {
+
+        }
+        val segmentIdList = listOf()*/
+
+        val polylineAnnotationManager = mapView?.annotations?.createPolylineAnnotationManager(mapView!!)
+        polylineAnnotationManager?.lineCap = (LineCap.ROUND)
+
+        /*mapboxMap?.addOnMapClickListener(object : OnPolylineAnnotationClickListener {
+            override fun onPolylineAnnotationClick(polygon: PolylineAnnotation): Boolean {
+                // Handle the polyline click event here
+                val polylineId = polygon.id
+
+                return true
+            }
+        }*/
+
+        for (i in 0 until coordinates.size - 1){
+            val segmentPoints = listOf(coordinates[i], coordinates[i + 1])
+            val polylineAnnotationOptions: PolylineAnnotationOptions = PolylineAnnotationOptions()
+                .withPoints(segmentPoints)
+                .withLineJoin(LineJoin.ROUND)
+                .withLineColor(ContextCompat.getColor(this@BirdsEyeView, R.color.blue))
+                .withLineWidth(4.0)
+
+            polylineAnnotationManager?.create(polylineAnnotationOptions)
+        }
+
+
+
+        /* LineLayer... Mas madali pala pag polyline
         val lineString = LineString.fromLngLats(coordinates)
         val feature = Feature.fromGeometry(lineString)
         val featureCollection = FeatureCollection.fromFeature(feature)
@@ -292,12 +333,12 @@ class BirdsEyeView : AppCompatActivity() {
 
         style.addSource(geoJsonSource)
 
-        /*Line geoJson Log Check
+        //Line geoJson Log Check
         if (style.getSource(geoJsonSourceId) != null) {
             Log.d("LineLayer", geoJson)
         } else {
             Log.e("LineLayer", "GeoJson source not added.")
-        }*/
+        }
 
         style.addLayer(
             LineLayer("explorationViewLinesLayer", "explorationViewLinesSource").apply {
@@ -308,22 +349,24 @@ class BirdsEyeView : AppCompatActivity() {
                     lineColor(ContextCompat.getColor(this@BirdsEyeView, R.color.blue))
             }
         )
-        val layersIdToQuery = listOf("explorationViewLinesLayer")
 
         mapboxMap?.addOnMapClickListener { point ->
-            val screenPoint = mapboxMap.getProjection().toScreenLocation(point)
-            val features = mapboxMap.queryRenderedFeatures(screenPoint, layersIdToQuery)
+            val screenPoint = mapboxMap!!.pixelsForCoordinates(coordinates)
 
-            if (!features.isNullOrEmpty()) {
-                // Handle the clicked feature(s) here
-                for (feature in features) {
-                    // You can access properties of the clicked feature like this:
-                    val title = feature.getStringProperty("title")
-                    // Do something with the title or other properties
+            val features = mapboxMap!!.queryRenderedFeatures(screenPoint, "explorationViewLinesLayer")
+            if (features.isNotEmpty()) {
+                val clickedFeature = features[0]
+                val featureId = clickedFeature.id()
+                // Do something with the clicked feature-- featureId
+                for (x in features) {
+                    val title = x.getStringProperty("title")
                     Toast.makeText(this, "You selected $title", Toast.LENGTH_SHORT).show()
                 }
+
             }
+            false
         }
+        */
 
         /*LineLayer Log Check
         if (style.getLayer("userDrawnLinesLayer") != null) {
@@ -380,9 +423,6 @@ class BirdsEyeView : AppCompatActivity() {
         }*/
     }
 }
-
-
-
 /* Annotations
     fun addCircleAnnotationToMap(point: Point, locationColor: String , locationName: String) {
         val annotationApi = mapView?.annotations
