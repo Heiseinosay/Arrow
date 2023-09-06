@@ -27,6 +27,11 @@ elif [ "$1" == "list" ]; then
     else
         tilesets list mark-asuncion
     fi
+elif [ "$1" == "reupload" ]; then
+    if [[ -n $2 && -n $3 ]]; then
+        tilesets delete-source mark-asuncion "$2"
+        tilesets upload-source mark-asuncion "$2" "$3"
+    fi
 elif [ "$1" == "upload" ]; then
     if [[ $2 == "lb" ]]; then
         tilesets upload-source mark-asuncion lb-elevator src/lb/elevator.geojson.ld
