@@ -1,1 +1,8 @@
-{ "type": "Feature", "id": 0, "properties": { "name": "General Placement of Rooms", "desc": "LB" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 120.988920789663709, 14.603063992593112 ], [ 120.989612097157732, 14.602738493391001 ], [ 120.98963353178749, 14.602784384650505 ], [ 120.988942224293467, 14.603109883852616 ], [ 120.988920789663709, 14.603063992593112 ] ] ] } }
+{
+"type": "FeatureCollection",
+"name": "rooms.geojsonl",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "name": "General Placement of Rooms", "desc": "LB" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 120.988940953182706, 14.603108724208509 ], [ 120.98963330949779, 14.602784599119394 ], [ 120.989611433849859, 14.602741343077192 ], [ 120.988919077535186, 14.603065468228978 ], [ 120.988940953182706, 14.603108724208509 ] ] ] } }
+]
+}
