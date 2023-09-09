@@ -23,6 +23,41 @@
         app:mapbox_cameraTargetLng="120.98945"
         app:mapbox_cameraZoom="18"
         tools:layout_editor_absoluteX="123dp"
-        tools:layout_editor_absoluteY="121dp" />
+        tools:layout_editor_absoluteY="121dp" >
+
+    </com.mapbox.maps.MapView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/streetView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@drawable/street_view"
+        android:backgroundTint="@color/lightGrey"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/layerButton"
+        app:layout_constraintEnd_toEndOf="@+id/layerButton"
+        app:layout_constraintStart_toStartOf="@+id/layerButton"
+        android:contentDescription="Street View"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/layerButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:layout_alignParentBottom="true"
+        android:clickable="true"
+        android:focusable="true"
+        android:backgroundTint="@color/lightGrey"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:src="@drawable/layer_floating"
+        android:contentDescription="TODO" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,10 +5,14 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import android.Manifest
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 //import android.preference.PreferenceManager
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.DrawableRes
@@ -16,6 +20,7 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
@@ -41,8 +46,14 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
 
+
 class BirdsEyeView : AppCompatActivity() {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
+
+    //Layer Button Animation
+    private val fromBottom: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.from_bottom_layer)}
+    private val toBottom: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.to_bottom_layer)}
+    private var clicked = false
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -57,6 +68,8 @@ class BirdsEyeView : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
+        val layerButton = findViewById<FloatingActionButton>(R.id.layerButton)
+        val streetView = findViewById<FloatingActionButton>(R.id.streetView)
 
         reqPermissionLauncher =
             registerForActivityResult(
@@ -77,15 +90,15 @@ class BirdsEyeView : AppCompatActivity() {
         mapboxMap = mapView?.getMapboxMap()
 
         onMapReady()
+        layerButtonListener(layerButton, streetView)
     }
-
-
 
     private fun onMapReady() {
         mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clluwyesj006501rabdba3vi7" ,object: Style.OnStyleLoaded { //clm20kpkw00fp01raf9yaar2u
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
+                explorationView()
 
                 val camera = CameraOptions.Builder()
                     .center(Point.fromLngLat(120.98945,14.60195))
@@ -106,8 +119,6 @@ class BirdsEyeView : AppCompatActivity() {
                 addAnnotationToMap(southwest.longitude(),southwest.latitude())
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
                 addAnnotationToMap(camera.center!!.longitude(),camera.center!!.latitude())
-
-                explorationView()
             }
         })
     }
@@ -281,7 +292,6 @@ class BirdsEyeView : AppCompatActivity() {
                 .withLineJoin(LineJoin.ROUND)
                 .withLineColor(blue)
                 .withLineWidth(5.0)
-
             segmentOptionsList.add(polylineAnnotationOptions)
         }
 
@@ -294,8 +304,51 @@ class BirdsEyeView : AppCompatActivity() {
             true
         }
         polylineAnnotationManager?.addClickListener(clickListener)
-
-
-
     }
+
+    //Layer Floating Button
+    private fun layerButtonListener(layerButton: FloatingActionButton, streetView: FloatingActionButton) {
+        layerButton.setOnClickListener{
+            onAddButtonClicked(layerButton, streetView)
+        }
+        streetView.setOnClickListener{
+
+        }
+    }
+
+    private fun onAddButtonClicked(layerButton: FloatingActionButton, streetView: FloatingActionButton){
+        setButtonVisibility(clicked, layerButton, streetView)
+        setButtonAnimation(clicked, streetView)
+        setClickableButton(clicked, streetView)
+        clicked = !clicked
+    }
+
+    private fun setButtonVisibility(clicked: Boolean, layerButton: FloatingActionButton, streetView: FloatingActionButton){
+        if (!clicked){
+            streetView.visibility = View.VISIBLE
+            //layerButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.medGrey))
+        } else{
+            streetView.visibility = View.INVISIBLE
+            //layerButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.lightGrey))
+        }
+    }
+
+    private fun setButtonAnimation(clicked: Boolean, streetView: FloatingActionButton){
+        if (!clicked){
+            streetView.startAnimation(fromBottom)
+        } else{
+            streetView.startAnimation(toBottom)
+
+        }
+    }
+
+    private fun setClickableButton(clicked: Boolean, streetView: FloatingActionButton){
+        if (!clicked){
+            streetView.isClickable = true
+        } else{
+            streetView.isClickable = false
+        }
+    }
+
+
 }
