@@ -30,6 +30,11 @@
             "source": "mapbox://tileset-source/mark-asuncion/lb-cr",
             "minzoom": 8,
             "maxzoom": 16
+        },
+        "lb-ground": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-ground",
+            "minzoom": 8,
+            "maxzoom": 16
         }
     }
 }
