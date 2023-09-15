@@ -1,13 +1,23 @@
 {
     "version": 1,
     "layers": {
+        "lb-cr-2f-upw": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-cr-2f-upw",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-cr": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-cr",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
         "lb-elevator": {
             "source": "mapbox://tileset-source/mark-asuncion/lb-elevator",
             "minzoom": 8,
             "maxzoom": 16
         },
-        "lb-stairs": {
-            "source": "mapbox://tileset-source/mark-asuncion/lb-stairs",
+        "lb-emergency": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-emergency",
             "minzoom": 8,
             "maxzoom": 16
         },
@@ -21,18 +31,38 @@
             "minzoom": 8,
             "maxzoom": 16
         },
-        "lb-rooms": {
-            "source": "mapbox://tileset-source/mark-asuncion/lb-rooms",
-            "minzoom": 8,
-            "maxzoom": 16
-        },
-        "lb-cr": {
-            "source": "mapbox://tileset-source/mark-asuncion/lb-cr",
+        "lb-ground-2f-upw": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-ground-2f-upw",
             "minzoom": 8,
             "maxzoom": 16
         },
         "lb-ground": {
             "source": "mapbox://tileset-source/mark-asuncion/lb-ground",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-room-2f": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-room-2f",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-rooms-3f-upw": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-rooms-3f-upw",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-rooms": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-rooms",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-stairs-2f-upw": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-stairs-2f-upw",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
+        "lb-stairs": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-stairs",
             "minzoom": 8,
             "maxzoom": 16
         }
