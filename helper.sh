@@ -37,25 +37,7 @@ elif [ "$1" == "list" ]; then
         tilesets list mark-asuncion
     fi
 elif [ "$1" == "reupload" ]; then
-    if [[ $2 == "lb" ]]; then
-        tilesets delete-source mark-asuncion lb-elevator
-        tilesets upload-source mark-asuncion lb-elevator src/lb/elevator.geojson.ld
-
-        tilesets delete-source mark-asuncion lb-stairs
-        tilesets upload-source mark-asuncion lb-stairs src/lb/stairs.geojson.ld
-
-        tilesets delete-source mark-asuncion lb-escalator
-        tilesets upload-source mark-asuncion lb-escalator src/lb/escalator.geojson.ld
-
-        tilesets delete-source mark-asuncion lb-gate
-        tilesets upload-source mark-asuncion lb-gate src/lb/gate.geojson.ld
-
-        tilesets delete-source mark-asuncion lb-rooms
-        tilesets upload-source mark-asuncion lb-rooms src/lb/rooms.geojson.ld
-
-        tilesets delete-source mark-asuncion lb-cr
-        tilesets upload-source mark-asuncion lb-cr src/lb/cr.geojson.ld
-    elif [[ -n $3 ]]; then
+    if [[ -n $2 && -n $3 ]]; then
         tilesets delete-source mark-asuncion "$2"
         tilesets upload-source mark-asuncion "$2" "$3"
     fi
@@ -69,8 +51,8 @@ elif [ "$1" == "upload" ]; then
         tilesets upload-source mark-asuncion lb-gate src/lb/gate.geojson.ld
         tilesets upload-source mark-asuncion lb-ground-2f-upw src/lb/ground-2f-upw.geojson.ld
         tilesets upload-source mark-asuncion lb-ground src/lb/ground.geojson.ld
-        tilesets upload-source mark-asuncion lb-room-2f src/lb/room-2f.geojson.ld
-        tilesets upload-source mark-asuncion lb-rooms-3f-upw src/lb/rooms-3f-upw.geojson.ld
+        tilesets upload-source mark-asuncion lb-room-3f src/lb/room-3f.geojson.ld
+        tilesets upload-source mark-asuncion lb-rooms-upw src/lb/rooms-upw.geojson.ld
         tilesets upload-source mark-asuncion lb-rooms src/lb/rooms.geojson.ld
         tilesets upload-source mark-asuncion lb-stairs-2f-upw src/lb/stairs-2f-upw.geojson.ld
         tilesets upload-source mark-asuncion lb-stairs src/lb/stairs.geojson.ld

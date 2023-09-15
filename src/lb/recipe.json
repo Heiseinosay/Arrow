@@ -41,13 +41,13 @@
             "minzoom": 8,
             "maxzoom": 16
         },
-        "lb-room-2f": {
-            "source": "mapbox://tileset-source/mark-asuncion/lb-room-2f",
+        "lb-rooms-3f": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-rooms-3f",
             "minzoom": 8,
             "maxzoom": 16
         },
-        "lb-rooms-3f-upw": {
-            "source": "mapbox://tileset-source/mark-asuncion/lb-rooms-3f-upw",
+        "lb-rooms-upw": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-rooms-upw",
             "minzoom": 8,
             "maxzoom": 16
         },
