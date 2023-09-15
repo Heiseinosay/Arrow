@@ -20,7 +20,7 @@ elif [ "$1" == "convert" ]; then
         for f in "$3"/*.geojsonl.json
         do
             if [[ -f $f ]]; then
-                ldgeojson.py "$f" --out src/lb
+                ldgeojson.py "$f" --out "$3"
             fi
         done
     fi
@@ -61,12 +61,19 @@ elif [ "$1" == "reupload" ]; then
     fi
 elif [ "$1" == "upload" ]; then
     if [[ $2 == "lb" ]]; then
+        tilesets upload-source mark-asuncion lb-cr-2f-upw src/lb/cr-2f-upw.geojson.ld
+        tilesets upload-source mark-asuncion lb-cr src/lb/cr.geojson.ld
         tilesets upload-source mark-asuncion lb-elevator src/lb/elevator.geojson.ld
-        tilesets upload-source mark-asuncion lb-stairs src/lb/stairs.geojson.ld
+        tilesets upload-source mark-asuncion lb-emergency src/lb/emergency.geojson.ld
         tilesets upload-source mark-asuncion lb-escalator src/lb/escalator.geojson.ld
         tilesets upload-source mark-asuncion lb-gate src/lb/gate.geojson.ld
+        tilesets upload-source mark-asuncion lb-ground-2f-upw src/lb/ground-2f-upw.geojson.ld
+        tilesets upload-source mark-asuncion lb-ground src/lb/ground.geojson.ld
+        tilesets upload-source mark-asuncion lb-room-2f src/lb/room-2f.geojson.ld
+        tilesets upload-source mark-asuncion lb-rooms-3f-upw src/lb/rooms-3f-upw.geojson.ld
         tilesets upload-source mark-asuncion lb-rooms src/lb/rooms.geojson.ld
-        tilesets upload-source mark-asuncion lb-cr src/lb/cr.geojson.ld
+        tilesets upload-source mark-asuncion lb-stairs-2f-upw src/lb/stairs-2f-upw.geojson.ld
+        tilesets upload-source mark-asuncion lb-stairs src/lb/stairs.geojson.ld
     fi
     if [[ -n $2 && -n $3 ]]; then
         tilesets upload-source mark-asuncion "$2" "$3"
