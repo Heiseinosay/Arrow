@@ -16,15 +16,13 @@ function create-tile {
 if [ "$1" == "get" ]; then
     curl -O "https://api.mapbox.com/v4/mapbox.mapbox-streets-v8/16/54793/30080.mvt?style=mapbox://styles/mapbox/streets-v12@00&access_token=$MAPBOX_ACCESS_TOKEN"
 elif [ "$1" == "convert" ]; then
-    if [ "$2" == "lb" ]; then
-        ldgeojson.py src/lb/elevator.geojsonl.json
-        ldgeojson.py src/lb/escalator.geojsonl.json
-        ldgeojson.py src/lb/gate.geojsonl.json
-        ldgeojson.py src/lb/ground.geojsonl.json
-        # ldgeojson.py src/lb/points.geojsonl.json
-        ldgeojson.py src/lb/rooms.geojsonl.json
-        ldgeojson.py src/lb/stairs.geojsonl.json
-        ldgeojson.py src/lb/cr.geojsonl.json
+    if [[ $2 == "lb" && -n $3 ]]; then
+        for f in "$3"/*.geojsonl.json
+        do
+            if [[ -f $f ]]; then
+                ldgeojson.py "$f" --out src/lb
+            fi
+        done
     fi
 elif [ "$1" == "delete" ]; then
     if [ -n "$2" ]; then
