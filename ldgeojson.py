@@ -24,7 +24,7 @@ i = 1
 while i < len(sys.argv):
     arg = sys.argv[i]
     if arg == "--out":
-        out = cwd + '/' + sys.argv[i+1]
+        out = sys.argv[i+1]
         if out[-1] == '/':
             out = out[0:-1]
         i+=1
@@ -59,5 +59,5 @@ if isExit:
 outfile = filename.split('.')[0]
 
 print(f"Output File: {out}/{outfile}.geojson.ld")
-with open(f"{out}/{outfile}.geojson.ld",'w') as file:
+with open(f"{cwd}/{out}/{outfile}.geojson.ld",'w') as file:
     file.write(jsondump)
