@@ -1,59 +1,63 @@
 package com.example.arrow
 
-import android.os.Bundle
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
+//import android.preference.PreferenceManager
+
+// Polyline
+//Google Location
 import android.Manifest
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Bundle
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-//import android.preference.PreferenceManager
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
-
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Point
-import com.mapbox.maps.MapView
-import com.mapbox.maps.Style
 import com.mapbox.maps.CameraBoundsOptions
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.CoordinateBounds
+import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
+import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
+import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
+import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
-// Polyline
-import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
-import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
-import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
-import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
-import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
 
 
 class BirdsEyeView : AppCompatActivity() {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
 
     //Layer Button Animation
-    private val fromBottom: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.from_bottom_layer)}
-    private val toBottom: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.to_bottom_layer)}
-    private var clicked = false
+    private val fromTop: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.from_top_layer)}
+    private val toTop: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.to_top_layer)}
+
+    private var polylineAnnotationManager: PolylineAnnotationManager? = null
+
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -68,8 +72,6 @@ class BirdsEyeView : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
-        val layerButton = findViewById<FloatingActionButton>(R.id.layerButton)
-        val streetView = findViewById<FloatingActionButton>(R.id.streetView)
 
         reqPermissionLauncher =
             registerForActivityResult(
@@ -90,15 +92,14 @@ class BirdsEyeView : AppCompatActivity() {
         mapboxMap = mapView?.getMapboxMap()
 
         onMapReady()
-        layerButtonListener(layerButton, streetView)
+        layerButtonListener()
     }
 
     private fun onMapReady() {
-        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clluwyesj006501rabdba3vi7" ,object: Style.OnStyleLoaded { //clm20kpkw00fp01raf9yaar2u
+        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clmlyake001u801r8f0nhgal3" ,object: Style.OnStyleLoaded { //clm20kpkw00fp01raf9yaar2u
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
-                explorationView()
 
                 val camera = CameraOptions.Builder()
                     .center(Point.fromLngLat(120.98945,14.60195))
@@ -114,7 +115,6 @@ class BirdsEyeView : AppCompatActivity() {
                 val cmBounds: CameraBoundsOptions.Builder = CameraBoundsOptions.Builder()
                 cmBounds.bounds(coordBound)
                 mapboxMap?.setBounds(cmBounds.build())
-
 
                 addAnnotationToMap(southwest.longitude(),southwest.latitude())
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
@@ -164,6 +164,7 @@ class BirdsEyeView : AppCompatActivity() {
 
     private fun initLocationComponent() {
         val locationComponentPlugin = mapView?.location
+
         locationComponentPlugin?.updateSettings {
             this.enabled = true
             this.locationPuck = LocationPuck2D(
@@ -199,7 +200,7 @@ class BirdsEyeView : AppCompatActivity() {
             R.drawable.arrowvector
         )?.let {
             val annotationApi = mapView?.annotations
-            val pointAnnotationManager = annotationApi?.createPointAnnotationManager(mapView!!)
+            val pointAnnotationManager = annotationApi?.createPointAnnotationManager()
             val pointAnnotationOptions = PointAnnotationOptions()
                 .withPoint(Point.fromLngLat(longtitude, latitude))
                 .withIconImage(it)
@@ -278,12 +279,12 @@ class BirdsEyeView : AppCompatActivity() {
             Point.fromLngLat(120.989768692323, 14.6024882313838),
         )
 
-        val polylineAnnotationManager = mapView?.annotations?.createPolylineAnnotationManager()
+        polylineAnnotationManager = mapView?.annotations?.createPolylineAnnotationManager()
         polylineAnnotationManager?.lineCap = (LineCap.ROUND)
 
         val blue = ContextCompat.getColor(this@BirdsEyeView, R.color.blue)
-
         val segmentOptionsList = mutableListOf<PolylineAnnotationOptions>()
+
         val coordinateSize = coordinates.size - 1
 
         for (i in 0 until coordinateSize){
@@ -306,47 +307,61 @@ class BirdsEyeView : AppCompatActivity() {
         polylineAnnotationManager?.addClickListener(clickListener)
     }
 
-    //Layer Floating Button
-    private fun layerButtonListener(layerButton: FloatingActionButton, streetView: FloatingActionButton) {
+    //Layer Floating Button (SHOULD BE MORE EFFICIENT)
+    private fun layerButtonListener() {
+        var clicked = false
+        var streetViewClicked = false
+
+        val layerButton = findViewById<FloatingActionButton>(R.id.layerButton)
+        val streetView = findViewById<FloatingActionButton>(R.id.streetView)
+        val arView = findViewById<FloatingActionButton>(R.id.arView)
+        val birdsView = findViewById<FloatingActionButton>(R.id.birdsView)
+
+        val streetViewText = findViewById<TextView>(R.id.streetViewText)
+        val arViewText = findViewById<TextView>(R.id.arViewText)
+        val birdsViewText = findViewById<TextView>(R.id.birdsViewText)
+
+
         layerButton.setOnClickListener{
-            onAddButtonClicked(layerButton, streetView)
+            setButton(clicked, streetView)
+            setButton(clicked, streetViewText)
+
+            setButton(clicked, arView)
+            setButton(clicked, arViewText)
+
+            setButton(clicked, birdsView)
+            setButton(clicked, birdsViewText)
+
+            clicked = !clicked
         }
         streetView.setOnClickListener{
+            streetViewClicked = if(!streetViewClicked){
+                explorationView()
+                true
+            } else {
+                polylineAnnotationManager?.deleteAll()
+                // polylineAnnotationManager?.update("polyline_$i", PropertyFactory.lineOpacity(opacity))
+                false
+            }
+        }
+        arView.setOnClickListener {
+            Toast.makeText(this, "AR View", Toast.LENGTH_SHORT).show()
+        }
+        birdsView.setOnClickListener {
 
         }
     }
 
-    private fun onAddButtonClicked(layerButton: FloatingActionButton, streetView: FloatingActionButton){
-        setButtonVisibility(clicked, layerButton, streetView)
-        setButtonAnimation(clicked, streetView)
-        setClickableButton(clicked, streetView)
-        clicked = !clicked
-    }
-
-    private fun setButtonVisibility(clicked: Boolean, layerButton: FloatingActionButton, streetView: FloatingActionButton){
+    private fun setButton(clicked: Boolean, FAB: View){
         if (!clicked){
-            streetView.visibility = View.VISIBLE
-            //layerButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.medGrey))
-        } else{
-            streetView.visibility = View.INVISIBLE
-            //layerButton.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.lightGrey))
-        }
-    }
+            FAB.visibility = View.VISIBLE
+            FAB.startAnimation(fromTop)
+            FAB.isClickable = true
 
-    private fun setButtonAnimation(clicked: Boolean, streetView: FloatingActionButton){
-        if (!clicked){
-            streetView.startAnimation(fromBottom)
         } else{
-            streetView.startAnimation(toBottom)
-
-        }
-    }
-
-    private fun setClickableButton(clicked: Boolean, streetView: FloatingActionButton){
-        if (!clicked){
-            streetView.isClickable = true
-        } else{
-            streetView.isClickable = false
+            FAB.visibility = View.INVISIBLE
+            FAB.startAnimation(toTop)
+            FAB.isClickable = false
         }
     }
 
