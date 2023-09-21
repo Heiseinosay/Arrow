@@ -26,6 +26,11 @@
             "minzoom": 8,
             "maxzoom": 16
         },
+        "lb-escalator-oddf": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-escalator-oddf",
+            "minzoom": 8,
+            "maxzoom": 16
+        },
         "lb-gate": {
             "source": "mapbox://tileset-source/mark-asuncion/lb-gate",
             "minzoom": 8,
