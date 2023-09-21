@@ -48,6 +48,7 @@ elif [ "$1" == "upload" ]; then
         tilesets upload-source mark-asuncion lb-elevator src/lb/elevator.geojson.ld
         tilesets upload-source mark-asuncion lb-emergency src/lb/emergency.geojson.ld
         tilesets upload-source mark-asuncion lb-escalator src/lb/escalator.geojson.ld
+        tilesets upload-source mark-asuncion lb-escalator-oddf src/lb/lb-escalator-oddf.geojson.ld
         tilesets upload-source mark-asuncion lb-gate src/lb/gate.geojson.ld
         tilesets upload-source mark-asuncion lb-ground-2f-upw src/lb/ground-2f-upw.geojson.ld
         tilesets upload-source mark-asuncion lb-ground src/lb/ground.geojson.ld
