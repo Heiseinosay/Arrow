@@ -1,0 +1,45 @@
+package com.example.arrow
+
+import com.mapbox.geojson.Point
+
+object Coordinates {
+    val gastamToLualhati = listOf(
+        Point.fromLngLat(120.99062060085, 14.6019655071744),
+        Point.fromLngLat(120.990585732133, 14.6019525292989),
+        Point.fromLngLat(120.990550192865, 14.6019408492104),
+        Point.fromLngLat(120.990520688567, 14.6020076852644),
+        Point.fromLngLat(120.990522029671, 14.6020070363707),
+        Point.fromLngLat(120.99050660697, 14.6020401299434),
+        Point.fromLngLat(120.990470397149, 14.6020479166657),
+        Point.fromLngLat(120.99043485788, 14.6020414277305),
+        Point.fromLngLat(120.990395965851, 14.6020362365822),
+        Point.fromLngLat(120.990361217374, 14.6020284339487),
+        Point.fromLngLat(120.990322995897, 14.602018700545),
+        Point.fromLngLat(120.990285444972, 14.6020083182472),
+        Point.fromLngLat(120.99025191736, 14.6019998826299),
+        Point.fromLngLat(120.990241188524, 14.6020284339487),
+        Point.fromLngLat(120.990223754166, 14.6020647719855),
+        Point.fromLngLat(120.990209002017, 14.6020972166562),
+        Point.fromLngLat(120.990198943733, 14.6021329057884),
+        Point.fromLngLat(120.990160722256, 14.6021179812429),
+        Point.fromLngLat(120.990123841883, 14.6021056522698),
+        Point.fromLngLat(120.990088302614, 14.6020946210827),
+        Point.fromLngLat(120.990056786659, 14.6020816432149),
+        Point.fromLngLat(120.9900239296, 14.6020680164528),
+        Point.fromLngLat(120.989985708122, 14.6020517941159),
+        Point.fromLngLat(120.989951509958, 14.6020595808378),
+        Point.fromLngLat(120.98994011057, 14.6020887810423),
+        Point.fromLngLat(120.989924017317, 14.6021238212826),
+        Point.fromLngLat(120.989910178848, 14.6021566472101),
+        Point.fromLngLat(120.989897438355, 14.6021897407603),
+        Point.fromLngLat(120.989882015653, 14.6022228343062),
+        Point.fromLngLat(120.989867934056, 14.6022552789536),
+        Point.fromLngLat(120.989854523011, 14.602288372489),
+        Point.fromLngLat(120.989841782518, 14.6023234126988),
+        Point.fromLngLat(120.989827700921, 14.6023565062239),
+        Point.fromLngLat(120.989814960428, 14.602390248638),
+        Point.fromLngLat(120.989800878831, 14.602423342153),
+        Point.fromLngLat(120.989786126682, 14.6024570845554),
+        Point.fromLngLat(120.989768692323, 14.6024882313838),
+    )
+}
