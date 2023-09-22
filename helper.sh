@@ -40,6 +40,7 @@ elif [ "$1" == "reupload" ]; then
     if [[ -n $2 && -n $3 ]]; then
         tilesets delete-source mark-asuncion "$2"
         tilesets upload-source mark-asuncion "$2" "$3"
+        echo "$(date):: reupload source: ${2} with ${3}" | tee -a arrow.log
     fi
 elif [ "$1" == "upload" ]; then
     if [[ $2 == "lb" ]]; then
