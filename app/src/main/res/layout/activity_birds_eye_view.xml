@@ -393,56 +393,6 @@
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintVertical_bias="0.023" />
 
-                    <androidx.cardview.widget.CardView
-                        android:id="@+id/seachbar"
-                        android:layout_width="300dp"
-                        android:layout_height="50dp"
-                        android:backgroundTint="@color/lightGrey"
-                        app:cardCornerRadius="20dp"
-                        app:cardElevation="0dp"
-                        app:cardMaxElevation="0dp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintHorizontal_bias="0.493"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintVertical_bias="0.049">
-
-                        <androidx.constraintlayout.widget.ConstraintLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-                            <ImageView
-                                android:id="@+id/imageView7"
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:src="@raw/student_male"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintHorizontal_bias="0.053"
-                                app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintVertical_bias="0.466" />
-
-                            <EditText
-                                android:id="@+id/etSearchBar"
-                                android:layout_width="230dp"
-                                android:layout_height="45dp"
-                                android:background="@android:color/transparent"
-                                android:ems="10"
-                                android:hint="Search here"
-                                android:inputType="text"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintHorizontal_bias="0.8"
-                                app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintVertical_bias="0.4" />
-
-                        </androidx.constraintlayout.widget.ConstraintLayout>
-                    </androidx.cardview.widget.CardView>
-
-
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
             </FrameLayout>

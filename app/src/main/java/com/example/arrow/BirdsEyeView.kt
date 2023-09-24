@@ -3,7 +3,6 @@ package com.example.arrow
 //import android.preference.PreferenceManager
 
 import android.Manifest
-import android.R.attr.button
 import android.animation.AnimatorSet
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
@@ -14,15 +13,10 @@ import android.graphics.Canvas
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.health.connect.datatypes.units.Length
-import android.os.Build
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.OnTouchListener
-import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -54,7 +48,6 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
-import org.checkerframework.common.returnsreceiver.qual.This
 
 
 class BirdsEyeView : AppCompatActivity() {
@@ -90,6 +83,7 @@ class BirdsEyeView : AppCompatActivity() {
         val tvNinethFloor = findViewById<TextView>(R.id.ninethFloor)
         val roofDeck = findViewById<TextView>(R.id.roofDeck)
         val scrollView = findViewById<ScrollView>(R.id.myScroll)
+
         // SCROLL TO BOTTOM BY DEFAULT
         scrollView.post {
             scrollView.fullScroll(ScrollView.FOCUS_DOWN)
@@ -143,6 +137,28 @@ class BirdsEyeView : AppCompatActivity() {
         val cvNavExplore = findViewById<CardView>(R.id.cv_navigation_explore)
         val cvNavDirection= findViewById<CardView>(R.id.cv_navigation_direction)
         val cvNavProfile = findViewById<CardView>(R.id.cv_navigation_profile)
+        val fragmentManager = supportFragmentManager
+
+        // DEFAULT
+        var fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.sheet, ExploreFragment())
+        fragmentTransaction.commit()
+
+        cvNavExplore.setOnClickListener {
+            fragmentTransaction = fragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.sheet, ExploreFragment())
+            fragmentTransaction.commit()
+        }
+        cvNavDirection.setOnClickListener{
+            fragmentTransaction = fragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.sheet, DirectionsFragment())
+            fragmentTransaction.commit()
+        }
+        cvNavProfile.setOnClickListener{
+            fragmentTransaction = fragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.sheet, ProfileFragment())
+            fragmentTransaction.commit()
+        }
 
         animationNavigation(cvNavExplore)
         animationNavigation(cvNavDirection)
@@ -152,14 +168,13 @@ class BirdsEyeView : AppCompatActivity() {
         // DRAGGABLE SHEET START
         val bottomSheet = findViewById<FrameLayout>(R.id.sheet)
 
-        val etSearchBar = findViewById<EditText>(R.id.etSearchBar)
         BottomSheetBehavior.from(bottomSheet).apply {
             peekHeight = 440
             this.state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
 
-        etSearchBar.setOnFocusChangeListener { view, hasFocus ->
+        ExploreFragment().etSearchBar?.setOnFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
                 BottomSheetBehavior.from(bottomSheet).apply {
                     this.state = BottomSheetBehavior.STATE_EXPANDED
@@ -170,13 +185,14 @@ class BirdsEyeView : AppCompatActivity() {
                 }
             }
         }
+
         val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 when (newState) {
                     BottomSheetBehavior.STATE_COLLAPSED -> {
                         //Toast.makeText(applicationContext, "collapse", Toast.LENGTH_SHORT).show()
-                        etSearchBar.clearFocus()
+                        ExploreFragment().etSearchBar?.clearFocus()
                     }
                     BottomSheetBehavior.STATE_EXPANDED -> {
                         //Toast.makeText(applicationContext, "Expanded", Toast.LENGTH_SHORT).show()
@@ -378,4 +394,7 @@ class BirdsEyeView : AppCompatActivity() {
     fun askPermissions() {
         reqPermissionLauncher.launch(PERMISSIONS)
     }
+
+
+
 }
