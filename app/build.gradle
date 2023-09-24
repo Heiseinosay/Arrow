@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace 'com.example.arrow'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.arrow"
@@ -34,6 +34,8 @@ android {
 }
 
 dependencies {
+    // DRAG
+    implementation 'com.google.android.material:material:1.11.0-alpha02'
     // let system handle permission request
     implementation("androidx.activity:activity-ktx:1.7.2")
     implementation("androidx.fragment:fragment-ktx:1.6.1")

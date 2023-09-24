@@ -86,6 +86,7 @@ open class Registration : AppCompatActivity() {
 
         }
 
+        // PASSWORD VALIDATION
         if (("^.*[A-Z].*$").toRegex().matches(passwordCheck)){
             passValidation2.setCardBackgroundColor(ContextCompat.getColor(this, R.color.blue))
             passText2.setTextColor(ContextCompat.getColor(this,R.color.blue))
