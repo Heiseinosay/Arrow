@@ -1,5 +1,10 @@
 package com.example.arrow
 
+import com.example.arrow.MapLayer
+import com.example.arrow.LB_BUILDING_LAYER_IDS
+import com.example.arrow.LB_BUILDING_SYMBOL_IDS
+import com.example.arrow.LB_BUILDING_LINE_IDS
+import com.example.arrow.setLBFloors
 //import android.preference.PreferenceManager
 
 import android.Manifest
@@ -68,6 +73,9 @@ class BirdsEyeView : AppCompatActivity() {
     )
     var mapView: MapView? = null
     var mapboxMap: MapboxMap? = null
+
+    var lbMapLayers: MapLayer? = null
+
     @SuppressLint("ResourceAsColor", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,7 +105,8 @@ class BirdsEyeView : AppCompatActivity() {
 
         val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
 
-        for (textView in allTextViews) {
+        for (i in allTextViews.indices) {
+            val textView = allTextViews[i]
             textView.setOnClickListener { view ->
                 // Reset all TextViews to their original state
                 for (tv in allTextViews) {
@@ -133,6 +142,8 @@ class BirdsEyeView : AppCompatActivity() {
                     val clickedTextViewId = clickedTextView.id
                     // Toast.makeText(this, "$clickedTextViewId", Toast.LENGTH_SHORT).show()
                 }
+                return@setOnClickListener
+                lbMapLayers?.setCurrFloor(i+1)
             }
         }
         // SET GROUND FLOOR
@@ -214,7 +225,7 @@ class BirdsEyeView : AppCompatActivity() {
     }
 
     private fun onMapReady() {
-        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/cllg37ebw00i001po8o3eb2vf" ,object: Style.OnStyleLoaded {
+        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clmvnqnd0000101pyh95u4s34" ,object: Style.OnStyleLoaded {
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
@@ -237,6 +248,17 @@ class BirdsEyeView : AppCompatActivity() {
                 addAnnotationToMap(southwest.longitude(),southwest.latitude())
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
                 addAnnotationToMap(camera.center!!.longitude(),camera.center!!.latitude())
+
+                // init MapLayers
+                lbMapLayers = MapLayer(
+                    "lb-building",
+                    mapboxMap,
+                    LB_BUILDING_LAYER_IDS,
+                    LB_BUILDING_SYMBOL_IDS,
+                    LB_BUILDING_LINE_IDS
+                )
+                // set floors
+                setLBFloors(lbMapLayers!!)
             }
         })
     }
