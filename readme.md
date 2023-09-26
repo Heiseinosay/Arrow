@@ -14,3 +14,5 @@
 * LB
     bottom/top: 154.183436
     side: 63.923417
+    distance-per-room-top: 7.90754
+    distance-per-room-bot: 9.78376
