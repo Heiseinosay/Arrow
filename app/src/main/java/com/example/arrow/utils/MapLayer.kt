@@ -1,4 +1,4 @@
-package com.example.arrow
+package com.example.arrow.utils
 
 import android.util.Log
 import com.mapbox.maps.MapboxMap
@@ -16,28 +16,29 @@ class MapLayer(
     strokeID: List<String>
 ) {
     var name = name
-    private val fillLayers = mutableMapOf<String, FillLayer?>()
-    private val symbolLayers = mutableMapOf<String, SymbolLayer?>()
-    private val lineLayers = mutableMapOf<String, LineLayer?>()
+    val fillLayers = mutableMapOf<String, FillLayer?>()
+    val symbolLayers = mutableMapOf<String, SymbolLayer?>()
+    val lineLayers = mutableMapOf<String, LineLayer?>()
 
-    var ID_FILLLAYERS = fillID.toList()
-    var ID_SYMBOLLAYERS = symbolID.toList()
-    var ID_LINELAYERS = strokeID.toList()
+    val ID_FILLLAYERS = fillID.toList()
+    val ID_SYMBOLLAYERS = symbolID.toList()
+    val ID_LINELAYERS = strokeID.toList()
 
     private val floorsFill = mutableListOf< List<Int> >()
     private val floorsSymbol = mutableListOf< List<Int> >()
     private val floorsLine = mutableListOf< List<Int> >()
 
     private var maxFloor: Int = 0
-        get() = maxFloor
+        get() = field
 
     private var currFloor: Int = 1
-        get() = currFloor
+        get() = field
 
-    fun setCurrFloor(floor: Int) {
-        if (floor >= maxFloor || floor <= 0) { return }
+    fun setCurrFloor(floor: Int, callable: () -> Unit = {}) {
+        if (floor >= maxFloor || floor <= 0) { return Unit }
         setFloorVisibility(currFloor,Visibility.NONE)
         setFloorVisibility(floor,Visibility.VISIBLE)
+        callable()
         currFloor = floor
     }
 
@@ -56,15 +57,6 @@ class MapLayer(
         }
         Log.i("MAPLAYERS","line: ${lineLayers}")
     }
-
-    fun getFill(key: String): FillLayer? {
-        return fillLayers[key]
-    }
-
-    fun getSymbol(key: String): SymbolLayer? {
-        return symbolLayers[key]
-    }
-
 
     fun setFloorOpacity(floor: Int, opacity: Double) {
         floorsFill[floor-1].forEach {
@@ -171,6 +163,52 @@ val LB_BUILDING_LINE_IDS: List<String> = listOf(
         "lb-ground-2f-upw-stroke"
         )
 
-        return maxFloor
+public fun setLBFloors(maplayer: MapLayer) {
+    maplayer.addFloor(
+            listOf(
+                "lb-escalator",
+                "lb-stairs",
+                "lb-rooms",
+                "lb-ground",
+                "lb-gate",
+                "lb-elevator",
+                "lb-cr"
+                ),
+            listOf(
+                "lb-stairs-label",
+                "lb-escalator-label",
+                "lb-rooms-label",
+                "lb-gate-label",
+                "lb-elevator-label",
+                "lb-cr-label"
+                ),
+            LB_BUILDING_LINE_IDS
+            )
+    for (i in 2..10) {
+        maplayer.addFloor(
+            listOf(
+                if (i!=3) "lb-rooms-upw" else "",
+                "lb-ground-2f-upw",
+                "lb-stairs",
+                "lb-stairs-2f-upw",
+                if (i==3) "lb-rooms-3f" else "",
+                "lb-escalator",
+                if (i%2 == 1) "lb-escalator-oddf" else "",
+                "lb-emergency",
+                "lb-elevator",
+                "lb-cr-2f-upw"
+                ),
+            listOf(
+                "lb-rooms-upw-label",
+                "lb-stairs-2f-upw-label",
+                if (i==3) "lb-rooms-3f-label" else "",
+                "lb-escalator-label",
+                if (i%2 == 1) "lb-escalator-oddf-label" else "",
+                "lb-emergency-label",
+                "lb-elevator-label",
+                "lb-cr-2f-upw-label"
+                ),
+            LB_BUILDING_LINE_IDS
+        )
     }
 }
