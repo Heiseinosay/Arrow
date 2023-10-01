@@ -102,43 +102,24 @@ class BirdsEyeView : AppCompatActivity() {
         }
 
         val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
-        var prevSelectedFloor = -1
 
         for (i in allTextViews.indices) {
             val textView = allTextViews[i]
             textView.setOnClickListener { view ->
-                // for (tv in allTextViews) {
-                //     tv.setTextColor(ContextCompat.getColor(this, R.color.black))
-                //     tv.setTypeface(Typeface.DEFAULT)
-                //     val resetScaleXAnimator = ObjectAnimator.ofFloat(tv, "scaleX", 1.0f)
-                //     val resetScaleYAnimator = ObjectAnimator.ofFloat(tv, "scaleY", 1.0f)
-                //     resetScaleXAnimator.duration = 200
-                //     resetScaleYAnimator.duration = 200
-
-                     // Create an AnimatorSet to run both animations simultaneously
-                //     val resetAnimatorSet = AnimatorSet()
-                //     resetAnimatorSet.playTogether(resetScaleXAnimator, resetScaleYAnimator)
-                //     resetAnimatorSet.start()
-                // }
-
-                if (prevSelectedFloor == i) {
-                    return@setOnClickListener
-                }
-                // Reset previous TextView to their original state
-                if (prevSelectedFloor != -1) {
-                    val tv = allTextViews[prevSelectedFloor]
+                // Reset all TextViews to their original state
+                for (tv in allTextViews) {
                     tv.setTextColor(ContextCompat.getColor(this, R.color.black))
                     tv.setTypeface(Typeface.DEFAULT)
                     val resetScaleXAnimator = ObjectAnimator.ofFloat(tv, "scaleX", 1.0f)
                     val resetScaleYAnimator = ObjectAnimator.ofFloat(tv, "scaleY", 1.0f)
                     resetScaleXAnimator.duration = 200
                     resetScaleYAnimator.duration = 200
-                    // Create an AnimatorSet to run both animations simultaneously
+
+                  // Create an AnimatorSet to run both animations simultaneously
                     val resetAnimatorSet = AnimatorSet()
                     resetAnimatorSet.playTogether(resetScaleXAnimator, resetScaleYAnimator)
                     resetAnimatorSet.start()
                 }
-                prevSelectedFloor = i
 
                 // Set the clicked TextView to be red, bold, and larger
                 view?.let {
