@@ -7,7 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Handler
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
@@ -20,6 +22,17 @@ class Loading : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_loading)
+
+        val action: String? = intent?.action
+        val data: Uri? = intent?.data
+
+        data?.let {
+            Log.i("MyTag", "$data")
+        }
+
+
+
+
         val sbProgress = findViewById<SeekBar>(R.id.loadingBar)
         sbProgress.setOnTouchListener(object : View.OnTouchListener {
             override fun onTouch(v: View?, event: MotionEvent?): Boolean {
