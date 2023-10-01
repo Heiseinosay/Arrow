@@ -13,7 +13,8 @@ class MapLayer(
     mapboxMap: MapboxMap?,
     fillID: List<String>,
     symbolID: List<String>,
-    strokeID: List<String>
+    strokeID: List<String>,
+    startingFloor: Int = 1
 ) {
     var name = name
     val fillLayers = mutableMapOf<String, FillLayer?>()
@@ -28,17 +29,17 @@ class MapLayer(
     private val floorsSymbol = mutableListOf< List<Int> >()
     private val floorsLine = mutableListOf< List<Int> >()
 
-    private var maxFloor: Int = 0
+    var maxFloor: Int = 0
         get() = field
 
-    private var currFloor: Int = 1
+    var currFloor: Int = startingFloor
         get() = field
 
-    fun setCurrFloor(floor: Int, callable: () -> Unit = {}) {
+    fun setCurrFloor(floor: Int, callable: (ctx: MapLayer,floor: Int) -> Unit = { _,_ -> }) {
         if (floor >= maxFloor || floor <= 0) { return Unit }
         setFloorVisibility(currFloor,Visibility.NONE)
         setFloorVisibility(floor,Visibility.VISIBLE)
-        callable()
+        callable(this,floor)
         currFloor = floor
     }
 
@@ -182,27 +183,26 @@ public fun setLBFloors(maplayer: MapLayer) {
                 "lb-elevator-label",
                 "lb-cr-label"
                 ),
-            LB_BUILDING_LINE_IDS
+            null
             )
     for (i in 2..10) {
         maplayer.addFloor(
             listOf(
                 if (i!=3) "lb-rooms-upw" else "",
                 "lb-ground-2f-upw",
-                "lb-stairs",
                 "lb-stairs-2f-upw",
                 if (i==3) "lb-rooms-3f" else "",
-                "lb-escalator",
+                if (i%2 == 1) "lb-escalator" else "",
                 if (i%2 == 1) "lb-escalator-oddf" else "",
                 "lb-emergency",
                 "lb-elevator",
                 "lb-cr-2f-upw"
                 ),
             listOf(
-                "lb-rooms-upw-label",
+                if (i!=3) "lb-rooms-upw-label" else "",
                 "lb-stairs-2f-upw-label",
                 if (i==3) "lb-rooms-3f-label" else "",
-                "lb-escalator-label",
+                if (i%2 == 1) "lb-escalator-label" else "",
                 if (i%2 == 1) "lb-escalator-oddf-label" else "",
                 "lb-emergency-label",
                 "lb-elevator-label",

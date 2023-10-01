@@ -1,10 +1,6 @@
 package com.example.arrow
 
-import com.example.arrow.MapLayer
-import com.example.arrow.LB_BUILDING_LAYER_IDS
-import com.example.arrow.LB_BUILDING_SYMBOL_IDS
-import com.example.arrow.LB_BUILDING_LINE_IDS
-import com.example.arrow.setLBFloors
+import com.example.arrow.utils.*
 //import android.preference.PreferenceManager
 
 import android.Manifest
@@ -22,6 +18,7 @@ import android.graphics.drawable.Drawable
 import android.health.connect.datatypes.units.Length
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
@@ -50,6 +47,7 @@ import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
+import com.mapbox.maps.extension.style.expressions.generated.Expression
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
@@ -104,24 +102,43 @@ class BirdsEyeView : AppCompatActivity() {
         }
 
         val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
+        var prevSelectedFloor = -1
 
         for (i in allTextViews.indices) {
             val textView = allTextViews[i]
             textView.setOnClickListener { view ->
-                // Reset all TextViews to their original state
-                for (tv in allTextViews) {
+                // for (tv in allTextViews) {
+                //     tv.setTextColor(ContextCompat.getColor(this, R.color.black))
+                //     tv.setTypeface(Typeface.DEFAULT)
+                //     val resetScaleXAnimator = ObjectAnimator.ofFloat(tv, "scaleX", 1.0f)
+                //     val resetScaleYAnimator = ObjectAnimator.ofFloat(tv, "scaleY", 1.0f)
+                //     resetScaleXAnimator.duration = 200
+                //     resetScaleYAnimator.duration = 200
+
+                     // Create an AnimatorSet to run both animations simultaneously
+                //     val resetAnimatorSet = AnimatorSet()
+                //     resetAnimatorSet.playTogether(resetScaleXAnimator, resetScaleYAnimator)
+                //     resetAnimatorSet.start()
+                // }
+
+                if (prevSelectedFloor == i) {
+                    return@setOnClickListener
+                }
+                // Reset previous TextView to their original state
+                if (prevSelectedFloor != -1) {
+                    val tv = allTextViews[prevSelectedFloor]
                     tv.setTextColor(ContextCompat.getColor(this, R.color.black))
                     tv.setTypeface(Typeface.DEFAULT)
                     val resetScaleXAnimator = ObjectAnimator.ofFloat(tv, "scaleX", 1.0f)
                     val resetScaleYAnimator = ObjectAnimator.ofFloat(tv, "scaleY", 1.0f)
                     resetScaleXAnimator.duration = 200
                     resetScaleYAnimator.duration = 200
-
                     // Create an AnimatorSet to run both animations simultaneously
                     val resetAnimatorSet = AnimatorSet()
                     resetAnimatorSet.playTogether(resetScaleXAnimator, resetScaleYAnimator)
                     resetAnimatorSet.start()
                 }
+                prevSelectedFloor = i
 
                 // Set the clicked TextView to be red, bold, and larger
                 view?.let {
@@ -137,13 +154,25 @@ class BirdsEyeView : AppCompatActivity() {
                     val animatorSet = AnimatorSet()
                     animatorSet.playTogether(scaleXAnimator, scaleYAnimator)
                     animatorSet.start()
-
-                    // WHAT FLOOR IS CLICKED
-                    val clickedTextViewId = clickedTextView.id
-                    // Toast.makeText(this, "$clickedTextViewId", Toast.LENGTH_SHORT).show()
                 }
-                return@setOnClickListener
-                lbMapLayers?.setCurrFloor(i+1)
+                lbMapLayers?.setCurrFloor(i+1) { ctx, floor ->
+                    val key = if (floor == 3) "lb-rooms-3f-label" else "lb-rooms-upw-label"
+                    ctx.symbolLayers[key]?.textField(
+                        Expression.match(
+                            Expression.get("name"),
+                            Expression.array(
+                                Expression.literal("Faculty"),
+                                Expression.literal("Dean's Office"),
+                                Expression.literal("Library")
+                            ),
+                            Expression.get("name"),
+                            Expression.concat(
+                                Expression.literal("" + floor),
+                                Expression.get("name")
+                            )
+                        )
+                    )
+                }
             }
         }
         // SET GROUND FLOOR
@@ -255,10 +284,12 @@ class BirdsEyeView : AppCompatActivity() {
                     mapboxMap,
                     LB_BUILDING_LAYER_IDS,
                     LB_BUILDING_SYMBOL_IDS,
-                    LB_BUILDING_LINE_IDS
+                    LB_BUILDING_LINE_IDS,
+                    7
                 )
                 // set floors
-                setLBFloors(lbMapLayers!!)
+                 setLBFloors(lbMapLayers!!)
+                lbMapLayers?.setCurrFloor(1)
             }
         })
     }
@@ -366,7 +397,7 @@ class BirdsEyeView : AppCompatActivity() {
             R.drawable.arrowvector
         )?.let {
             val annotationApi = mapView?.annotations
-            val pointAnnotationManager = annotationApi?.createPointAnnotationManager(mapView!!)
+            val pointAnnotationManager = annotationApi?.createPointAnnotationManager()
             val pointAnnotationOptions = PointAnnotationOptions()
                 .withPoint(Point.fromLngLat(longtitude, latitude))
                 .withIconImage(it)
