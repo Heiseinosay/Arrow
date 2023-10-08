@@ -17,6 +17,7 @@ import android.graphics.drawable.Drawable
 import android.health.connect.datatypes.units.Length
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
@@ -37,6 +38,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.mapbox.android.gestures.MoveGestureDetector
+import com.mapbox.api.directions.v5.DirectionsCriteria
+import com.mapbox.api.directions.v5.MapboxDirections
+import com.mapbox.api.directions.v5.models.DirectionsResponse
+import com.mapbox.api.directions.v5.models.DirectionsRoute
+import com.mapbox.api.directions.v5.models.RouteOptions
+import com.mapbox.core.constants.Constants.PRECISION_6
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraBoundsOptions
 import com.mapbox.maps.CameraOptions
@@ -45,16 +54,25 @@ import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
+import com.mapbox.maps.extension.style.layers.generated.lineLayer
+import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
+import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
 import org.checkerframework.common.returnsreceiver.qual.This
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class BirdsEyeView : AppCompatActivity() {
@@ -199,10 +217,10 @@ class BirdsEyeView : AppCompatActivity() {
             { permissions ->
                 val allPermissionsGranted = permissions.all { it.value }
                 if (allPermissionsGranted) {
-                    Toast.makeText( applicationContext, "Permission Granted", Toast.LENGTH_SHORT).show()
+                    Log.w( "PERMISSIONS", "Permission Granted")
                 }
                 else {
-                    Toast.makeText( applicationContext, "One of Permission is Denied", Toast.LENGTH_SHORT).show()
+                    Log.w( "PERMISSIONS", "One of Permission is Denied")
                 }
             }
         reqPermissionLauncher.launch(PERMISSIONS)
@@ -214,16 +232,10 @@ class BirdsEyeView : AppCompatActivity() {
     }
 
     private fun onMapReady() {
-        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/cllg37ebw00i001po8o3eb2vf" ,object: Style.OnStyleLoaded {
+        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clmvnqnd0000101pyh95u4s34" ,object: Style.OnStyleLoaded {
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
-
-                val camera = CameraOptions.Builder()
-                    .center(Point.fromLngLat(120.98945,14.60195))
-                    .zoom(15.0)
-                    .build()
-                mapboxMap?.setCamera(camera)
 
                 val southwest = Point.fromLngLat(120.98452,14.59990)
                 val northeast = Point.fromLngLat(120.99466,14.60415)
@@ -234,9 +246,63 @@ class BirdsEyeView : AppCompatActivity() {
                 cmBounds.bounds(coordBound)
                 mapboxMap?.setBounds(cmBounds.build())
 
+                val camera = CameraOptions.Builder()
+                    .center(Point.fromLngLat(120.98945,14.60195))
+                    .zoom(15.0)
+                    .build()
+                mapboxMap?.setCamera(camera)
+
                 addAnnotationToMap(southwest.longitude(),southwest.latitude())
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
                 addAnnotationToMap(camera.center!!.longitude(),camera.center!!.latitude())
+
+                val client = initDirection(
+                    mapboxMap!!,
+                    Point.fromLngLat(120.98945,14.60195),
+                    Point.fromLngLat(120.989049728062795, 14.602720827768),
+                    getString(R.string.mapbox_access_token)
+                )
+//                var currentRoute: DirectionsRoute? = null
+//                var directionsRouteFeature: Feature? = null
+                client.enqueueCall(object: Callback<DirectionsResponse?> {
+                    override fun onResponse(
+                        call: Call<DirectionsResponse?>,
+                        response: Response<DirectionsResponse?>
+                    ) {
+                        if (response.body() == null) {
+                            Log.e("CLIENT","No routes found, make sure you set the right user and access token.")
+                            return
+                        } else if (response.body()!!.routes().size < 1) {
+                            Log.e("CLIENT", "No routes found")
+                            return
+                        }
+                        val response = response
+                        val currentRoute = response.body()!!.routes()[0]
+                        val directionsRouteFeature = Feature.fromGeometry(LineString.fromPolyline(currentRoute?.geometry()!!, PRECISION_6))
+                        mapboxMap?.getStyle({
+                        })
+//                        mapboxMap?.loadStyle(
+//                            (
+//                                    style(styleUri = "mapbox://styles/mark-asuncion/clmvnqnd0000101pyh95u4s34") {
+//                                        +geoJsonSource("Navigation") {
+//                                            feature(directionsRouteFeature!!,"RouteFeature")
+//                                        }
+//                                        +lineLayer("linelayer", "Navigation") {
+//                                            lineCap(LineCap.ROUND)
+//                                            lineJoin(LineJoin.ROUND)
+//                                            lineOpacity(1.0)
+//                                            lineWidth(8.0)
+//                                            lineColor("#00ff00")
+//                                        }
+//                                    }
+//                                    )
+//                        )
+                        Log.i("CLIENT","Success")
+                    }
+                    override fun onFailure(call: Call<DirectionsResponse?>, throwable: Throwable) {
+                        Log.e("CLIENT","Error: " + throwable.message)
+                    }
+                })
             }
         })
     }
