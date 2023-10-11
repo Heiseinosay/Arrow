@@ -1,4 +1,5 @@
 package com.example.arrow
+import com.example.arrow.utils.*
 
 //import android.preference.PreferenceManager
 
@@ -9,6 +10,7 @@ import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Typeface
@@ -34,9 +36,13 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.cardview.widget.CardView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.MapboxDirections
@@ -69,6 +75,11 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.navigation.base.options.DeviceProfile
+import com.mapbox.navigation.base.options.NavigationOptions
+import com.mapbox.navigation.base.options.RerouteOptions
+import com.mapbox.navigation.core.MapboxNavigation
+import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp
 import org.checkerframework.common.returnsreceiver.qual.This
 import retrofit2.Call
 import retrofit2.Callback
@@ -86,7 +97,8 @@ class BirdsEyeView : AppCompatActivity() {
     )
     var mapView: MapView? = null
     var mapboxMap: MapboxMap? = null
-    @SuppressLint("ResourceAsColor", "ClickableViewAccessibility")
+    var mapboxNavigationApp: MapboxNavigationApp? = null
+    @SuppressLint("ResourceAsColor", "ClickableViewAccessibility", "MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
@@ -228,7 +240,33 @@ class BirdsEyeView : AppCompatActivity() {
         mapView = findViewById(R.id.mapView)
         mapboxMap = mapView?.getMapboxMap()
 
+        // mapbox navigation setup
+        mapboxNavigationApp = MapboxNavigationApp.setup(
+            NavigationOptions.Builder(baseContext)
+                .accessToken(getString(R.string.mapbox_access_token))
+                .build()
+        )
+        mapboxNavigationApp?.attach(this)
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                MapboxNavigationApp.attach(owner)
+            }
+            override fun onPause(owner: LifecycleOwner) {
+                MapboxNavigationApp.detach(owner)
+            }
+        })
+
+        initCustomRoutes(
+            getString(R.string.mapbox_access_token),
+            mapboxNavigationApp?.current()!!
+        )
         onMapReady()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun requestDirection() {
+        mapboxNavigationApp?.current()?.startTripSession()
+        mapboxNavigationApp?.current()?.registerLocationObserver(locationObserver)
     }
 
     private fun onMapReady() {
@@ -256,53 +294,47 @@ class BirdsEyeView : AppCompatActivity() {
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
                 addAnnotationToMap(camera.center!!.longitude(),camera.center!!.latitude())
 
-                val client = initDirection(
-                    mapboxMap!!,
-                    Point.fromLngLat(120.98945,14.60195),
-                    Point.fromLngLat(120.989049728062795, 14.602720827768),
-                    getString(R.string.mapbox_access_token)
-                )
-//                var currentRoute: DirectionsRoute? = null
-//                var directionsRouteFeature: Feature? = null
-                client.enqueueCall(object: Callback<DirectionsResponse?> {
-                    override fun onResponse(
-                        call: Call<DirectionsResponse?>,
-                        response: Response<DirectionsResponse?>
-                    ) {
-                        if (response.body() == null) {
-                            Log.e("CLIENT","No routes found, make sure you set the right user and access token.")
-                            return
-                        } else if (response.body()!!.routes().size < 1) {
-                            Log.e("CLIENT", "No routes found")
-                            return
-                        }
-                        val response = response
-                        val currentRoute = response.body()!!.routes()[0]
-                        val directionsRouteFeature = Feature.fromGeometry(LineString.fromPolyline(currentRoute?.geometry()!!, PRECISION_6))
-                        mapboxMap?.getStyle({
-                        })
-//                        mapboxMap?.loadStyle(
-//                            (
-//                                    style(styleUri = "mapbox://styles/mark-asuncion/clmvnqnd0000101pyh95u4s34") {
-//                                        +geoJsonSource("Navigation") {
-//                                            feature(directionsRouteFeature!!,"RouteFeature")
-//                                        }
-//                                        +lineLayer("linelayer", "Navigation") {
-//                                            lineCap(LineCap.ROUND)
-//                                            lineJoin(LineJoin.ROUND)
-//                                            lineOpacity(1.0)
-//                                            lineWidth(8.0)
-//                                            lineColor("#00ff00")
-//                                        }
-//                                    }
-//                                    )
-//                        )
-                        Log.i("CLIENT","Success")
-                    }
-                    override fun onFailure(call: Call<DirectionsResponse?>, throwable: Throwable) {
-                        Log.e("CLIENT","Error: " + throwable.message)
-                    }
-                })
+//                requestDirection()
+                // setup layer of direction
+//                initDirectionLayer(style)
+//                if (requestRoute(
+//                    getString(R.string.mapbox_access_token),
+//                    mapboxNavigationApp?.current()!!,
+//                    Point.fromLngLat(120.98945,14.60195),
+//                    Point.fromLngLat(120.989049728062795, 14.602720827768)
+//                )) {
+//                    val directionRoute: DirectionsRoute =
+//                        mapboxNavigationApp?.current()?.getNavigationRoutes()!![0]
+//                            .directionsRoute
+//                    drawDirection(style, directionRoute)
+//                }
+
+//                val client = initDirection(
+//                    // mapboxMap!!,
+//                    Point.fromLngLat(120.98945,14.60195),
+//                    Point.fromLngLat(120.989049728062795, 14.602720827768),
+//                    getString(R.string.mapbox_access_token)
+//                )
+//                client.enqueueCall(object: Callback<DirectionsResponse?> {
+//                    override fun onResponse(
+//                        call: Call<DirectionsResponse?>,
+//                        response: Response<DirectionsResponse?>
+//                    ) {
+//                        if (response.body() == null) {
+//                            Log.e("CLIENT","No routes found, make sure you set the right user and access token.")
+//                            return
+//                        } else if (response.body()!!.routes().size < 1) {
+//                            Log.e("CLIENT", "No routes found")
+//                            return
+//                        }
+//
+//                        drawDirection(style, response.body()!!.routes()[0])
+//                        Log.i("CLIENT","Success")
+//                    }
+//                    override fun onFailure(call: Call<DirectionsResponse?>, throwable: Throwable) {
+//                        Log.e("CLIENT","Error: " + throwable.message)
+//                    }
+//                })
             }
         })
     }
