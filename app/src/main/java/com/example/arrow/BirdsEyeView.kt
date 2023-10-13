@@ -240,26 +240,6 @@ class BirdsEyeView : AppCompatActivity() {
         mapView = findViewById(R.id.mapView)
         mapboxMap = mapView?.getMapboxMap()
 
-        // mapbox navigation setup
-        mapboxNavigationApp = MapboxNavigationApp.setup(
-            NavigationOptions.Builder(baseContext)
-                .accessToken(getString(R.string.mapbox_access_token))
-                .build()
-        )
-        mapboxNavigationApp?.attach(this)
-        lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onResume(owner: LifecycleOwner) {
-                MapboxNavigationApp.attach(owner)
-            }
-            override fun onPause(owner: LifecycleOwner) {
-                MapboxNavigationApp.detach(owner)
-            }
-        })
-
-        initCustomRoutes(
-            getString(R.string.mapbox_access_token),
-            mapboxNavigationApp?.current()!!
-        )
         onMapReady()
     }
 
@@ -293,48 +273,6 @@ class BirdsEyeView : AppCompatActivity() {
                 addAnnotationToMap(southwest.longitude(),southwest.latitude())
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
                 addAnnotationToMap(camera.center!!.longitude(),camera.center!!.latitude())
-
-//                requestDirection()
-                // setup layer of direction
-//                initDirectionLayer(style)
-//                if (requestRoute(
-//                    getString(R.string.mapbox_access_token),
-//                    mapboxNavigationApp?.current()!!,
-//                    Point.fromLngLat(120.98945,14.60195),
-//                    Point.fromLngLat(120.989049728062795, 14.602720827768)
-//                )) {
-//                    val directionRoute: DirectionsRoute =
-//                        mapboxNavigationApp?.current()?.getNavigationRoutes()!![0]
-//                            .directionsRoute
-//                    drawDirection(style, directionRoute)
-//                }
-
-//                val client = initDirection(
-//                    // mapboxMap!!,
-//                    Point.fromLngLat(120.98945,14.60195),
-//                    Point.fromLngLat(120.989049728062795, 14.602720827768),
-//                    getString(R.string.mapbox_access_token)
-//                )
-//                client.enqueueCall(object: Callback<DirectionsResponse?> {
-//                    override fun onResponse(
-//                        call: Call<DirectionsResponse?>,
-//                        response: Response<DirectionsResponse?>
-//                    ) {
-//                        if (response.body() == null) {
-//                            Log.e("CLIENT","No routes found, make sure you set the right user and access token.")
-//                            return
-//                        } else if (response.body()!!.routes().size < 1) {
-//                            Log.e("CLIENT", "No routes found")
-//                            return
-//                        }
-//
-//                        drawDirection(style, response.body()!!.routes()[0])
-//                        Log.i("CLIENT","Success")
-//                    }
-//                    override fun onFailure(call: Call<DirectionsResponse?>, throwable: Throwable) {
-//                        Log.e("CLIENT","Error: " + throwable.message)
-//                    }
-//                })
             }
         })
     }
