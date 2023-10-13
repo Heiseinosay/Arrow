@@ -243,6 +243,18 @@ class BirdsEyeView : AppCompatActivity() {
         onMapReady()
     }
 
+    private fun removeExtraUI() {
+        mapView?.logo?.updateSettings {
+            enabled = false
+        }
+        mapView?.attribution?.updateSettings {
+            enabled = false
+        }
+        mapView?.scalebar?.updateSettings {
+            enabled = false
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun requestDirection() {
         mapboxNavigationApp?.current()?.startTripSession()
