@@ -275,12 +275,6 @@ class BirdsEyeView : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private fun requestDirection() {
-        mapboxNavigationApp?.current()?.startTripSession()
-        mapboxNavigationApp?.current()?.registerLocationObserver(locationObserver)
-    }
-
     private fun onMapReady() {
         mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clmvnqnd0000101pyh95u4s34" ,object: Style.OnStyleLoaded {
             override fun onStyleLoaded(style: Style) {
