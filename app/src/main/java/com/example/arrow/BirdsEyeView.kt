@@ -1,8 +1,6 @@
 package com.example.arrow
 import com.example.arrow.utils.*
 
-//import android.preference.PreferenceManager
-
 import android.Manifest
 import android.R.attr.button
 import android.animation.AnimatorSet
@@ -65,6 +63,7 @@ import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.style
+import com.mapbox.maps.extension.style.expressions.generated.Expression
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
@@ -98,7 +97,10 @@ class BirdsEyeView : AppCompatActivity() {
     var mapView: MapView? = null
     var mapboxMap: MapboxMap? = null
     var mapboxNavigationApp: MapboxNavigationApp? = null
-    @SuppressLint("ResourceAsColor", "ClickableViewAccessibility", "MissingPermission")
+
+    var lbMapLayers: MapLayer? = null
+
+    @SuppressLint("ResourceAsColor", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
@@ -127,7 +129,8 @@ class BirdsEyeView : AppCompatActivity() {
 
         val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
 
-        for (textView in allTextViews) {
+        for (i in allTextViews.indices) {
+            val textView = allTextViews[i]
             textView.setOnClickListener { view ->
                 // Reset all TextViews to their original state
                 for (tv in allTextViews) {
@@ -138,7 +141,7 @@ class BirdsEyeView : AppCompatActivity() {
                     resetScaleXAnimator.duration = 200
                     resetScaleYAnimator.duration = 200
 
-                    // Create an AnimatorSet to run both animations simultaneously
+                  // Create an AnimatorSet to run both animations simultaneously
                     val resetAnimatorSet = AnimatorSet()
                     resetAnimatorSet.playTogether(resetScaleXAnimator, resetScaleYAnimator)
                     resetAnimatorSet.start()
@@ -158,10 +161,24 @@ class BirdsEyeView : AppCompatActivity() {
                     val animatorSet = AnimatorSet()
                     animatorSet.playTogether(scaleXAnimator, scaleYAnimator)
                     animatorSet.start()
-
-                    // WHAT FLOOR IS CLICKED
-                    val clickedTextViewId = clickedTextView.id
-                    // Toast.makeText(this, "$clickedTextViewId", Toast.LENGTH_SHORT).show()
+                }
+                lbMapLayers?.setCurrFloor(i+1) { ctx, floor ->
+                    val key = if (floor == 3) "lb-rooms-3f-label" else "lb-rooms-upw-label"
+                    ctx.symbolLayers[key]?.textField(
+                        Expression.match(
+                            Expression.get("name"),
+                            Expression.array(
+                                Expression.literal("Faculty"),
+                                Expression.literal("Dean's Office"),
+                                Expression.literal("Library")
+                            ),
+                            Expression.get("name"),
+                            Expression.concat(
+                                Expression.literal("" + floor),
+                                Expression.get("name")
+                            )
+                        )
+                    )
                 }
             }
         }
@@ -285,6 +302,19 @@ class BirdsEyeView : AppCompatActivity() {
                 addAnnotationToMap(southwest.longitude(),southwest.latitude())
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
                 addAnnotationToMap(camera.center!!.longitude(),camera.center!!.latitude())
+
+                // init MapLayers
+                lbMapLayers = MapLayer(
+                    "lb-building",
+                    mapboxMap,
+                    LB_BUILDING_LAYER_IDS,
+                    LB_BUILDING_SYMBOL_IDS,
+                    LB_BUILDING_LINE_IDS,
+                    7
+                )
+                // set floors
+                 setLBFloors(lbMapLayers!!)
+                lbMapLayers?.setCurrFloor(1)
             }
         })
     }
@@ -392,7 +422,7 @@ class BirdsEyeView : AppCompatActivity() {
             R.drawable.arrowvector
         )?.let {
             val annotationApi = mapView?.annotations
-            val pointAnnotationManager = annotationApi?.createPointAnnotationManager(mapView!!)
+            val pointAnnotationManager = annotationApi?.createPointAnnotationManager()
             val pointAnnotationOptions = PointAnnotationOptions()
                 .withPoint(Point.fromLngLat(longtitude, latitude))
                 .withIconImage(it)
