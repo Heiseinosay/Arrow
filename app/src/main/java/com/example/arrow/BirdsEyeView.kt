@@ -16,8 +16,12 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
@@ -27,9 +31,16 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraBoundsOptions
@@ -52,6 +63,13 @@ import com.mapbox.maps.plugin.locationcomponent.location
 
 class BirdsEyeView : AppCompatActivity() {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var viewModel: ViewModel
+    private lateinit var maleImage: ImageView
+    private lateinit var femaleImage: ImageView
+    private lateinit var db: FirebaseFirestore
+    private var userUID: String? = null
+    private lateinit var userRef: DocumentReference
+    private lateinit var bottomSheet: FrameLayout
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -133,32 +151,54 @@ class BirdsEyeView : AppCompatActivity() {
         tvGroundFloor.performClick()
         // FLOOR SWITCHING END
 
+        // Getting document snapshot from User Collection
+        db = Firebase.firestore
+        userUID = FirebaseAuth.getInstance().currentUser?.uid
+
+        if(userUID != null){
+            userRef = db.collection("users").document(userUID!!)
+            userRef.get().addOnSuccessListener { documentSnapshot->
+                if (documentSnapshot.exists()){
+                    val userData = documentSnapshot.data
+                    ProfileObjects.name = userData?.get("name") as String?
+                    ProfileObjects.role = userData?.get("role") as String?
+                    ProfileObjects.email = userData?.get("email") as String?
+                    ProfileObjects.profile = userData?.get("profile") as String?
+
+                    maleImage = findViewById(R.id.iv_male)
+                    femaleImage = findViewById(R.id.iv_female)
+
+                    when (ProfileObjects.role) {
+                        "Student" -> {
+                            when (ProfileObjects.profile){
+                                "Student_male" -> ProfileObjects.profileImage = maleImage.drawable
+                                "Student_female" -> ProfileObjects.profileImage = femaleImage.drawable
+                            }
+                        }
+                        "Employee" -> {
+                            maleImage.setImageDrawable(setRawImage(resources, R.raw.employee_male))
+                            femaleImage.setImageDrawable(setRawImage(resources, R.raw.employee_female))
+                            when (ProfileObjects.profile){
+                                "Employee_male" -> ProfileObjects.profileImage = maleImage.drawable
+                                "Employee_female" -> ProfileObjects.profileImage = femaleImage.drawable
+                            }
+                        }
+                        "Visitor" -> {
+                            ProfileObjects.profileImage = setRawImage(resources, R.raw.visitor)
+                        }
+                    }
+                    viewModel = ViewModelProvider(this).get(ViewModel::class.java)
+                    viewModel.setImageDrawable(ProfileObjects.profileImage!!)
+                }
+            }
+        } else{
+            Toast.makeText(this, "Loading...", Toast.LENGTH_SHORT).show()
+        }
+
         // NAVIGATION START
         val cvNavExplore = findViewById<CardView>(R.id.cv_navigation_explore)
         val cvNavDirection= findViewById<CardView>(R.id.cv_navigation_direction)
         val cvNavProfile = findViewById<CardView>(R.id.cv_navigation_profile)
-        val fragmentManager = supportFragmentManager
-
-        // DEFAULT
-        var fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.sheet, ExploreFragment())
-        fragmentTransaction.commit()
-
-        cvNavExplore.setOnClickListener {
-            fragmentTransaction = fragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.sheet, ExploreFragment())
-            fragmentTransaction.commit()
-        }
-        cvNavDirection.setOnClickListener{
-            fragmentTransaction = fragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.sheet, DirectionsFragment())
-            fragmentTransaction.commit()
-        }
-        cvNavProfile.setOnClickListener{
-            fragmentTransaction = fragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.sheet, ProfileFragment())
-            fragmentTransaction.commit()
-        }
 
         animationNavigation(cvNavExplore)
         animationNavigation(cvNavDirection)
@@ -166,24 +206,11 @@ class BirdsEyeView : AppCompatActivity() {
         // NAVIGATION END
 
         // DRAGGABLE SHEET START
-        val bottomSheet = findViewById<FrameLayout>(R.id.sheet)
+        bottomSheet = findViewById(R.id.sheet)
 
         BottomSheetBehavior.from(bottomSheet).apply {
             peekHeight = 440
             this.state = BottomSheetBehavior.STATE_COLLAPSED
-        }
-
-
-        ExploreFragment().etSearchBar?.setOnFocusChangeListener { view, hasFocus ->
-            if (hasFocus) {
-                BottomSheetBehavior.from(bottomSheet).apply {
-                    this.state = BottomSheetBehavior.STATE_EXPANDED
-                }
-            } else {
-                BottomSheetBehavior.from(bottomSheet).apply {
-                    this.state = BottomSheetBehavior.STATE_COLLAPSED
-                }
-            }
         }
 
         val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
@@ -192,7 +219,7 @@ class BirdsEyeView : AppCompatActivity() {
                 when (newState) {
                     BottomSheetBehavior.STATE_COLLAPSED -> {
                         //Toast.makeText(applicationContext, "collapse", Toast.LENGTH_SHORT).show()
-                        ExploreFragment().etSearchBar?.clearFocus()
+                        //ExploreFragment().etSearchBar?.clearFocus()
                     }
                     BottomSheetBehavior.STATE_EXPANDED -> {
                         //Toast.makeText(applicationContext, "Expanded", Toast.LENGTH_SHORT).show()
@@ -206,7 +233,31 @@ class BirdsEyeView : AppCompatActivity() {
                 // You can use it to perform actions based on the slide offset if needed
             }
         })
-        // DRAGGABLE SHEET END
+
+        // DEFAULT
+        val fragmentManager = supportFragmentManager
+        var fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.sheet, ExploreFragment())
+        fragmentTransaction.commit()
+
+        cvNavExplore.setOnClickListener {
+            fragmentTransaction = fragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.sheet, ExploreFragment())
+            fragmentTransaction.commit()
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+        cvNavDirection.setOnClickListener{
+            fragmentTransaction = fragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.sheet, DirectionsFragment())
+            fragmentTransaction.commit()
+        }
+        cvNavProfile.setOnClickListener {
+            fragmentTransaction = fragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.sheet, ProfileFragment())
+            fragmentTransaction.commit()
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
+
 
         reqPermissionLauncher =
             registerForActivityResult(
@@ -230,7 +281,7 @@ class BirdsEyeView : AppCompatActivity() {
     }
 
     private fun onMapReady() {
-        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/cllg37ebw00i001po8o3eb2vf" ,object: Style.OnStyleLoaded {
+        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/cln7lp912007d01rcbfd88n8p" ,object: Style.OnStyleLoaded {
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
@@ -368,6 +419,12 @@ class BirdsEyeView : AppCompatActivity() {
             pointAnnotationManager?.create(pointAnnotationOptions)
         }
     }
+
+    private fun getFirstName(name: String): String{
+        val parts = name.split(" ")
+        return parts[0]
+    }
+
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =
         convertDrawableToBitmap(AppCompatResources.getDrawable(context, resourceId))
 
@@ -391,10 +448,87 @@ class BirdsEyeView : AppCompatActivity() {
         }
     }
 
+    fun viewProfileOverlay(){
+        // Select Avatar Overlay
+        val profileOverlay = findViewById<ConstraintLayout>(R.id.profile_overlay)
+        ProfileObjects.profileOverlay = profileOverlay
+        val male = findViewById<CardView>(R.id.cv_male)
+        val female = findViewById<CardView>(R.id.cv_female)
+        val confirm = findViewById<Button>(R.id.btn_profile_confirm)
+
+        profileOverlay.visibility = VISIBLE
+        val bgSelected = ContextCompat.getColor(this, R.color.green)
+        val bgUnselected = ContextCompat.getColor(this, R.color.offWhite)
+        var avatarSelected: Drawable? = null
+        var avatarString: String? = null
+
+        male.setOnClickListener {
+            male.setCardBackgroundColor(bgSelected)
+            female.setCardBackgroundColor(bgUnselected)
+            when(ProfileObjects.role){
+                "Student" -> {
+                    avatarString = "Student_male"
+                }
+                "Employee" -> {
+                    avatarString = "Employee_male"
+                }
+            }
+            avatarSelected = maleImage.drawable
+        }
+        female.setOnClickListener {
+            male.setCardBackgroundColor(bgUnselected)
+            female.setCardBackgroundColor(bgSelected)
+            when(ProfileObjects.role){
+                "Student" -> {
+                    avatarString = "Student_female"
+                }
+                "Employee" -> {
+                    avatarString = "Employee_female"
+                }
+            }
+            avatarSelected = femaleImage.drawable
+        }
+        confirm.setOnClickListener {
+            if(avatarSelected !=null) {
+                viewModel = ViewModelProvider(this).get(ViewModel::class.java)
+                viewModel.setImageDrawable(avatarSelected!!)
+
+                userRefUpdate(avatarString)
+                ProfileObjects.profileImage = avatarSelected
+                ProfileObjects.profile = avatarString
+
+                avatarSelected = null
+                avatarString = null
+
+                male.setCardBackgroundColor(bgUnselected)
+                female.setCardBackgroundColor(bgUnselected)
+                profileOverlay.visibility = GONE
+            }else{
+                Toast.makeText(this,"Select an avatar first.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun userRefUpdate(value: String?){
+        userRef.update("profile", value)
+            .addOnFailureListener {
+                Toast.makeText(this, "Change avatar failed. Please try again.", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    fun focusListener(hasFocus: Boolean){
+        if (hasFocus) {
+            BottomSheetBehavior.from(bottomSheet).apply {
+                this.state = BottomSheetBehavior.STATE_EXPANDED
+            }
+        } else {
+            BottomSheetBehavior.from(bottomSheet).apply {
+                this.state = BottomSheetBehavior.STATE_COLLAPSED
+            }
+        }
+    }
+
     fun askPermissions() {
         reqPermissionLauncher.launch(PERMISSIONS)
     }
-
-
-
 }
