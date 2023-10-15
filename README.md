@@ -8,3 +8,6 @@ prior: research about how to implement the project using android studio and othe
 - Internet connectivity
 - Floor switching(automatic)
 
+# Custom Navigation Checklist
+- [ ] Construct NodeGraph
+- [ ] Implement [Dijkstra](https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/)
