@@ -34,6 +34,8 @@ import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.auth.FirebaseAuth
@@ -70,6 +72,7 @@ class BirdsEyeView : AppCompatActivity() {
     private var userUID: String? = null
     private lateinit var userRef: DocumentReference
     private lateinit var bottomSheet: FrameLayout
+    private lateinit var fragmentManager: FragmentManager
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -200,6 +203,13 @@ class BirdsEyeView : AppCompatActivity() {
         val cvNavDirection= findViewById<CardView>(R.id.cv_navigation_direction)
         val cvNavProfile = findViewById<CardView>(R.id.cv_navigation_profile)
 
+        val ivExplore = findViewById<ImageView>(R.id.iv_explore)
+        val tvExplore = findViewById<TextView>(R.id.tv_navigation_explore)
+        val ivDirection = findViewById<ImageView>(R.id.iv_direction)
+        val tvDirection = findViewById<TextView>(R.id.tv_navigation_direction)
+        val ivProfile = findViewById<ImageView>(R.id.iv_profile)
+        val tvProfile = findViewById<TextView>(R.id.tv_navigation_profile)
+
         animationNavigation(cvNavExplore)
         animationNavigation(cvNavDirection)
         animationNavigation(cvNavProfile)
@@ -213,13 +223,33 @@ class BirdsEyeView : AppCompatActivity() {
             this.state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
+        // DEFAULT
+        fragmentManager = supportFragmentManager
+        changeFragment(ExploreFragment(), ivExplore, tvExplore,
+            listOf(ivDirection, ivProfile), listOf(tvDirection, tvProfile))
+
         val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 when (newState) {
                     BottomSheetBehavior.STATE_COLLAPSED -> {
                         //Toast.makeText(applicationContext, "collapse", Toast.LENGTH_SHORT).show()
-                        //ExploreFragment().etSearchBar?.clearFocus()
+
+                        // Perform collapse function in the current inflated fragment
+                        when(fragmentManager.findFragmentById(R.id.sheet)){
+                            is ExploreFragment -> {
+                                viewModel = ViewModelProvider(this@BirdsEyeView).get(ViewModel::class.java)
+                                viewModel.clearFocus(false)
+                            }
+                            is DirectionsFragment -> {
+                                changeFragment(ExploreFragment(), ivExplore, tvExplore,
+                                    listOf(ivDirection, ivProfile), listOf(tvDirection, tvProfile))
+                            }
+                            is ProfileFragment -> {
+                                changeFragment(ExploreFragment(), ivExplore, tvExplore,
+                                    listOf(ivDirection, ivProfile), listOf(tvDirection, tvProfile))
+                            }
+                        }
                     }
                     BottomSheetBehavior.STATE_EXPANDED -> {
                         //Toast.makeText(applicationContext, "Expanded", Toast.LENGTH_SHORT).show()
@@ -234,27 +264,18 @@ class BirdsEyeView : AppCompatActivity() {
             }
         })
 
-        // DEFAULT
-        val fragmentManager = supportFragmentManager
-        var fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.sheet, ExploreFragment())
-        fragmentTransaction.commit()
-
         cvNavExplore.setOnClickListener {
-            fragmentTransaction = fragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.sheet, ExploreFragment())
-            fragmentTransaction.commit()
+            changeFragment(ExploreFragment(), ivExplore, tvExplore,
+                listOf(ivDirection, ivProfile), listOf(tvDirection, tvProfile))
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
         cvNavDirection.setOnClickListener{
-            fragmentTransaction = fragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.sheet, DirectionsFragment())
-            fragmentTransaction.commit()
+            changeFragment(DirectionsFragment(), ivDirection, tvDirection,
+                listOf(ivProfile, ivExplore), listOf(tvProfile, tvExplore))
         }
         cvNavProfile.setOnClickListener {
-            fragmentTransaction = fragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.sheet, ProfileFragment())
-            fragmentTransaction.commit()
+            changeFragment(ProfileFragment(), ivProfile, tvProfile, listOf(ivDirection,
+                ivExplore), listOf(tvDirection, tvExplore))
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
 
@@ -281,7 +302,7 @@ class BirdsEyeView : AppCompatActivity() {
     }
 
     private fun onMapReady() {
-        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/cln7lp912007d01rcbfd88n8p" ,object: Style.OnStyleLoaded {
+        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clmvnqnd0000101pyh95u4s34" ,object: Style.OnStyleLoaded {
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
@@ -465,6 +486,7 @@ class BirdsEyeView : AppCompatActivity() {
         male.setOnClickListener {
             male.setCardBackgroundColor(bgSelected)
             female.setCardBackgroundColor(bgUnselected)
+            confirm.setBackgroundColor(ContextCompat.getColor(this, R.color.blue))
             when(ProfileObjects.role){
                 "Student" -> {
                     avatarString = "Student_male"
@@ -474,10 +496,12 @@ class BirdsEyeView : AppCompatActivity() {
                 }
             }
             avatarSelected = maleImage.drawable
+
         }
         female.setOnClickListener {
             male.setCardBackgroundColor(bgUnselected)
             female.setCardBackgroundColor(bgSelected)
+            confirm.setBackgroundColor(ContextCompat.getColor(this, R.color.blue))
             when(ProfileObjects.role){
                 "Student" -> {
                     avatarString = "Student_female"
@@ -502,6 +526,7 @@ class BirdsEyeView : AppCompatActivity() {
 
                 male.setCardBackgroundColor(bgUnselected)
                 female.setCardBackgroundColor(bgUnselected)
+                confirm.setBackgroundColor(ContextCompat.getColor(this, R.color.darkGrey))
                 profileOverlay.visibility = GONE
             }else{
                 Toast.makeText(this,"Select an avatar first.", Toast.LENGTH_SHORT).show()
@@ -521,10 +546,22 @@ class BirdsEyeView : AppCompatActivity() {
             BottomSheetBehavior.from(bottomSheet).apply {
                 this.state = BottomSheetBehavior.STATE_EXPANDED
             }
-        } else {
-            BottomSheetBehavior.from(bottomSheet).apply {
-                this.state = BottomSheetBehavior.STATE_COLLAPSED
-            }
+        }
+    }
+
+    private fun changeFragment(fragment: Fragment, selectedIv: ImageView, selectedTv: TextView,
+                               unselectedIv: List<ImageView>, unselectedTv : List<TextView>){
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.sheet, fragment)
+        fragmentTransaction.commit()
+
+        selectedIv.setColorFilter(ContextCompat.getColor(this, R.color.green))
+        selectedTv.setTextColor(ContextCompat.getColor(this, R.color.green))
+        for (view in unselectedIv) {
+            view.setColorFilter(ContextCompat.getColor(this, R.color.medGrey))
+        }
+        for (view in unselectedTv){
+            view.setTextColor(ContextCompat.getColor(this, R.color.medGrey))
         }
     }
 

@@ -258,7 +258,7 @@
                         android:layout_height="match_parent">
 
                         <ImageView
-                            android:id="@+id/imageView9"
+                            android:id="@+id/iv_direction"
                             android:layout_width="25dp"
                             android:layout_height="25dp"
                             app:layout_constraintBottom_toBottomOf="parent"
@@ -270,7 +270,7 @@
                             app:srcCompat="@drawable/baseline_directions_24" />
 
                         <TextView
-                            android:id="@+id/textView6"
+                            android:id="@+id/tv_navigation_direction"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Direction"
@@ -305,7 +305,7 @@
                         android:layout_height="match_parent">
 
                         <ImageView
-                            android:id="@+id/imageView8"
+                            android:id="@+id/iv_profile"
                             android:layout_width="25dp"
                             android:layout_height="25dp"
                             app:layout_constraintBottom_toBottomOf="parent"
@@ -400,7 +400,7 @@
             android:layout_height="wrap_content"
             android:text="Select Avatar"
             android:textColor="@color/green"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             android:layout_marginBottom="30dp"
             app:layout_constraintBottom_toTopOf="@+id/profile_holder"
@@ -472,8 +472,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:text="Confirm"
-            android:textColor="@color/green"
-            android:backgroundTint="@color/offWhite"
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/darkGrey"
             app:layout_constraintTop_toBottomOf="@+id/profile_holder"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>

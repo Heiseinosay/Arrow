@@ -1,8 +1,8 @@
 package com.example.arrow
 
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -25,7 +25,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         val userName = view.findViewById<TextView>(R.id.tv_name)
         val userEmail = view.findViewById<TextView>(R.id.tv_email)
 
-        profileImage.setImageDrawable(ProfileObjects.profileImage)
         viewModel = ViewModelProvider(requireActivity()).get(ViewModel::class.java)
         viewModel.imageDrawable.observe(viewLifecycleOwner) { newDrawable ->
             profileImage.setImageDrawable(newDrawable)
@@ -46,14 +45,12 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         val logout = view.findViewById<CardView>(R.id.cv_logout)
         logout?.setOnClickListener {
-            /*val sf = activity?.getSharedPreferences("rememberMe", MODE_PRIVATE)
+            val sf = activity?.getSharedPreferences("rememberMe", MODE_PRIVATE)
             val editor = sf?.edit()
             editor?.clear()
-            editor?.apply()*/
+            editor?.apply()
             FirebaseAuth.getInstance().signOut()
             startActivity(Intent(requireContext(), Login::class.java))
-            Log.d("ProfileObjectsCheck", "${ProfileObjects.profile}")
-            Log.d("ProfileObjectsCheck", "${ProfileObjects.role}")
         }
     }
 
