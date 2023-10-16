@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "layers": {
+        "lb-navigation-points": {
+            "source": "mapbox://tileset-source/mark-asuncion/lb-navigation-points",
+            "minzoom": 8,
+            "maxzoom": 16
+        }
+    }
+}
