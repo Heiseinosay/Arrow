@@ -120,10 +120,91 @@ val ROOMS = listOf(
 // 801
 Point.fromLngLat(120.98897628824259698, 14.60303867951060042),
 Point.fromLngLat(120.98901122138191511, 14.60302232839303116),
-
 // 802
 Point.fromLngLat(120.98903854730180285, 14.60300952853645384),
-
+Point.fromLngLat(120.98907689527234766, 14.60299158366277439),
+// 803
+Point.fromLngLat(120.98910314468635363, 14.60297928477821472),
+Point.fromLngLat(120.98913922168352997, 14.60296240260303513),
+// 804
+Point.fromLngLat(120.98916564973461618, 14.60295002566779665),
+Point.fromLngLat(120.98920995000584355, 14.60292929542410256),
+// 805
+Point.fromLngLat(120.98922725741829254, 14.60292118546547613),
+Point.fromLngLat(120.98926962031819698, 14.60290136004681649),
+// 806
+Point.fromLngLat(120.98929363237417078, 14.60289011010148208),
+Point.fromLngLat(120.9893333023739217, 14.60287154658629127),
+// 807
+Point.fromLngLat(120.98936068678133893, 14.60285871974829242),
+Point.fromLngLat(120.98939673219122426, 14.60284185235428644),
+// 808
+Point.fromLngLat(120.98942353653305304, 14.60282929692687226),
+Point.fromLngLat(120.98945896113932008, 14.60281271906417366),
+// 809
+Point.fromLngLat(120.98948569987423696, 14.6028001949241748),
+Point.fromLngLat(120.98951977539392999, 14.60278424933739139),
+// 810
+Point.fromLngLat(120.98954841808858873, 14.60277083590513669),
+Point.fromLngLat(120.98958572714415993, 14.60275337719021671),
+// cr male - female
+Point.fromLngLat(120.98962129380241493, 14.60273672187269689),
+Point.fromLngLat(120.9896626788723637, 14.60271735766345635),
+// 811
+Point.fromLngLat(120.98892312130102766, 14.60296640754689967),
+// 812
+Point.fromLngLat(120.98893019890223854, 14.60285476725510456),
+Point.fromLngLat(120.98897773170747882, 14.60283252873598059),
+// 813
+Point.fromLngLat(120.98901198110021937, 14.60281648008631983),
+Point.fromLngLat(120.9890564003149791, 14.60279569948910172),
+// 814
+Point.fromLngLat(120.98908836189924898, 14.60278072213567668),
+Point.fromLngLat(120.98913464507965898, 14.60275906952130676),
+// 815
+Point.fromLngLat(120.98916526415166572, 14.60274471986289058),
+Point.fromLngLat(120.98921317449382684, 14.60272230715272457),
+// 816
+Point.fromLngLat(120.9892479465624433, 14.60270601189087358),
+Point.fromLngLat(120.98929037544655785, 14.60268616242812456),
+// 817
+Point.fromLngLat(120.98932698180009027, 14.60266901370976633),
+Point.fromLngLat(120.98936922112987702, 14.60264925292604943),
+// 818
+Point.fromLngLat(120.98940557441331123, 14.60263222179350073),
+Point.fromLngLat(120.98944702392901718, 14.60261283050776271),
+// 819
+Point.fromLngLat(120.98948495622521193, 14.60259505915288969),
+Point.fromLngLat(120.98952466814817797, 14.6025764807634566),
+// 820
+Point.fromLngLat(120.9895586200888431, 14.60256057230071391),
+Point.fromLngLat(120.98960743068786883, 14.60253773728676663),
+// elevator 1 - 2 - faculty
+Point.fromLngLat(120.98938297670417796, 14.60272502366131775),
+Point.fromLngLat(120.98940484926579586, 14.6027682736044504),
+Point.fromLngLat(120.98889355357253805, 14.60276438426404333),
+// emergency 1 - 2
+Point.fromLngLat(120.98895318227337725, 14.60302585432041944),
+Point.fromLngLat(120.98903612286463272, 14.60269763889574257),
+// cr 2 female - male
+Point.fromLngLat(120.98894857666996927, 14.60273861538169093),
+Point.fromLngLat(120.98898263988034785, 14.60272266558838261),
+// stairs 1 - 2
+Point.fromLngLat(120.98932931901177312, 14.60275014756102152),
+Point.fromLngLat(120.98935119225413359, 14.60279339883573613),
+// stairs 3 - 4
+Point.fromLngLat(120.98927989608382916, 14.60277328212144354),
+Point.fromLngLat(120.98930176888865162, 14.60281653253094092),
+// escalator 1 - 2
+Point.fromLngLat(120.98923219133646967, 14.60279561355931577),
+Point.fromLngLat(120.98925406389875548, 14.60283886348851468),
+// escalator 3 - 4
+Point.fromLngLat(120.98918250845456157, 14.60281887250618915),
+Point.fromLngLat(120.98920438101558261, 14.60286212243142145), // 55
+// deans office
+Point.fromLngLat(120.98887054156791976, 14.60286244285996382),
+// faculty room
+Point.fromLngLat(120.98886011501883786, 14.60284182582272194),
 )
 
 fun distanceOf(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
@@ -154,7 +235,16 @@ data class Node(val loc: Point, val property: Int = 0) {
      val neighbors: MutableList<Node?> = mutableListOf()
      // distance in km
      val distance: MutableList<Double>  = mutableListOf()
-     override fun toString(): String = neighbors.toString() + ' ' + distance.toString()
+
+     fun debug(): String {
+         val location = "[" + loc.longitude().toString() + ", " + loc.latitude().toString() + "]"
+         val size = neighbors.size
+         var l = neighbors.toString()
+         // for ( i in neighbors.indices )
+         //     l += neighbors[i]?.debug() + ", " + distance[i].toString() + "\n"
+         return "{\nlocation: $location,\nsize: $size,\n $l\n}"
+     }
+
      fun add(node: Node): Node? {
          assert(neighbors.size < 4) {
              // TODO Remove assert if done testing
@@ -176,8 +266,8 @@ class NavigationGraph(base: Node?) {
     }
 }
 
-fun setupNavigationTree(): NavigationGraph {
-    Log.i("setupNavigationTree","" + POINTS.size)
+fun setupNavigationGraph(): NavigationGraph {
+    Log.i("setupNavigationGraph","" + POINTS.size)
 
     val elev1 = Node(POINTS[0],Property.Entry.value or Property.Exit.value)
     val elev2 = Node(POINTS[1],Property.Entry.value or Property.Exit.value)
@@ -382,7 +472,7 @@ fun setupNavigationTree(): NavigationGraph {
 
     val navGraph = NavigationGraph(elev1)
 
-    Log.i("NAVIGATIONTREE", navGraph.start?.toString()!!)
+    Log.i("NAVIGATIONTREE", navGraph.start?.debug()!!)
 
     return navGraph
 }
