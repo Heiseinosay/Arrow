@@ -426,7 +426,7 @@ class BirdsEyeView : AppCompatActivity() {
         locationComponentPlugin?.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
     }
 
-    private fun addAnnotationToMap(longtitude: Double, latitude: Double) {
+    private fun addAnnotationToMap(longitude: Double, latitude: Double) {
         bitmapFromDrawableRes(
             this@BirdsEyeView,
             R.drawable.arrowvector
@@ -434,16 +434,11 @@ class BirdsEyeView : AppCompatActivity() {
             val annotationApi = mapView?.annotations
             val pointAnnotationManager = annotationApi?.createPointAnnotationManager(mapView!!)
             val pointAnnotationOptions = PointAnnotationOptions()
-                .withPoint(Point.fromLngLat(longtitude, latitude))
+                .withPoint(Point.fromLngLat(longitude, latitude))
                 .withIconImage(it)
 
             pointAnnotationManager?.create(pointAnnotationOptions)
         }
-    }
-
-    private fun getFirstName(name: String): String{
-        val parts = name.split(" ")
-        return parts[0]
     }
 
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =
