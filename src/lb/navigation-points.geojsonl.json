@@ -133,6 +133,7 @@
 { "type": "Feature", "properties": { "name": null }, "geometry": { "type": "Point", "coordinates": [ 120.988893553572538, 14.602764384264043 ] } },
 { "type": "Feature", "properties": { "name": null }, "geometry": { "type": "Point", "coordinates": [ 120.989036122864633, 14.602697638895743 ] } },
 { "type": "Feature", "properties": { "name": null }, "geometry": { "type": "Point", "coordinates": [ 120.988860115018838, 14.602841825822722 ] } },
-{ "type": "Feature", "properties": { "name": null }, "geometry": { "type": "Point", "coordinates": [ 120.98887054156792, 14.602862442859964 ] } }
+{ "type": "Feature", "properties": { "name": null }, "geometry": { "type": "Point", "coordinates": [ 120.98887054156792, 14.602862442859964 ] } },
+{ "type": "Feature", "properties": { "name": null }, "geometry": { "type": "Point", "coordinates": [ 120.988891627746327, 14.602904137818598 ] } }
 ]
 }
