@@ -9,5 +9,5 @@ prior: research about how to implement the project using android studio and othe
 - Floor switching(automatic)
 
 # Custom Navigation Checklist
-- [ ] Construct NodeGraph
+- [x] Construct NodeGraph
 - [ ] Implement [Dijkstra](https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/)
