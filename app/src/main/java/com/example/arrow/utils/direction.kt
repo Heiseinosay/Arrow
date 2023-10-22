@@ -240,8 +240,107 @@ class NavigationGraph(base: Node?) {
     // not the root node
     // the starting node is where the search will start
     var start = base
-    public fun requestRoute() {
-        assert(false) { "TODO Implement" }
+
+    data class RouteNode(val from: Node? = null, val dist: Double = Double.MAX_VALUE)
+
+    fun search(callable: (node: Node, i: Int) -> Unit = { _,_ -> }) {
+        val q: ArrayDeque<Node> = ArrayDeque<Node>()
+        val visited: MutableSet<Node> = mutableSetOf<Node>()
+        q.add(start)
+
+        while (q.isNotEmpty()) {
+            val curr = q.first()
+            q.removeFirstOrNull()
+
+            for (i in curr.neighbors.indices) {
+                if ( visited.contains(curr.neighbors[i]) ) continue
+                callable(curr.neighbors[i],i)
+                q.add(curr.neighbors[i])
+            }
+            visited.add(curr)
+        }
+    }
+
+    fun searchFor(target: Point,setStart: Boolean = false): Node? {
+        val q: ArrayDeque<Node> = ArrayDeque<Node>()
+        val visited: MutableSet<Node> = mutableSetOf<Node>()
+        q.add(start)
+        var ret: Node? = null
+        while (q.isNotEmpty()) {
+            val curr = q.first()
+            q.removeFirstOrNull()
+
+            for (i in curr.neighbors.indices) {
+                if ( visited.contains(curr.neighbors[i]) ) continue
+                if (curr.loc == target) {
+                    ret = curr
+                    q.clear()
+                    break
+                }
+                q.add(curr.neighbors[i])
+            }
+            visited.add(curr)
+        }
+
+        if (setStart && ret != null) this.start = ret
+        return ret
+    }
+
+    fun searchNearest(target: Point, priority: Int = 0): Pair<Double, Node?> {
+        val q: ArrayDeque<Node> = ArrayDeque<Node>()
+        val visited: MutableSet<Node> = mutableSetOf<Node>()
+        var cDist = Double.MAX_VALUE
+        var cLoc: Node? = null
+        q.add(start)
+
+        // separate searching to a function and add callback for extra checks
+        while (q.isNotEmpty()) {
+            val curr = q.first()
+            q.removeFirstOrNull()
+
+            for (i in curr.neighbors.indices) {
+                if ( visited.contains(curr.neighbors[i]) ) continue
+                val nDist = distanceOf(
+                    target.latitude(),
+                    target.longitude(),
+                    curr.neighbors[i].loc.latitude(),
+                    curr.neighbors[i].loc.longitude()
+                )
+
+                if (priority != 0) {
+                    if (cDist > nDist) {
+                        cLoc?.let {
+                            if (( it.property and priority ) != 0 &&
+                            ( curr.neighbors[i].property and priority ) != 0) {
+                                cDist = nDist
+                                cLoc = curr.neighbors[i]
+                            }
+                        }
+                    }
+                    else if ( (curr.neighbors[i].property and priority) != 0 ) {
+                        cDist = nDist
+                        cLoc = curr.neighbors[i]
+                    }
+                }
+                else if (cDist > nDist) {
+                    cDist = nDist
+                    cLoc = curr.neighbors[i]
+                }
+
+                q.add(curr.neighbors[i])
+            }
+            visited.add(curr)
+        }
+
+        return Pair(cDist, cLoc)
+    }
+
+
+    companion object {
+        fun toListofPoints(l: List<Node>): List<Point> {
+            assert(false) { "TODO implement" }
+            return listOf<Point>()
+        }
     }
 }
 
