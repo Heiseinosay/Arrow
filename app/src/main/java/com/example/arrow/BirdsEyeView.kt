@@ -1,7 +1,5 @@
 package com.example.arrow
-
 import com.example.arrow.utils.*
-//import android.preference.PreferenceManager
 
 import android.Manifest
 import android.R.attr.button
@@ -10,6 +8,7 @@ import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Typeface
@@ -35,10 +34,22 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.cardview.widget.CardView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.gestures.MoveGestureDetector
+import com.mapbox.api.directions.v5.DirectionsCriteria
+import com.mapbox.api.directions.v5.MapboxDirections
+import com.mapbox.api.directions.v5.models.DirectionsResponse
+import com.mapbox.api.directions.v5.models.DirectionsRoute
+import com.mapbox.api.directions.v5.models.RouteOptions
+import com.mapbox.core.constants.Constants.PRECISION_6
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraBoundsOptions
 import com.mapbox.maps.CameraOptions
@@ -47,17 +58,29 @@ import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
+import com.mapbox.maps.extension.style.layers.generated.lineLayer
+import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
+import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.extension.style.expressions.generated.Expression
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
+import com.mapbox.maps.plugin.attribution.attribution
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.plugin.logo.logo
+import com.mapbox.maps.plugin.scalebar.scalebar
 import org.checkerframework.common.returnsreceiver.qual.This
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class BirdsEyeView : AppCompatActivity() {
@@ -73,6 +96,7 @@ class BirdsEyeView : AppCompatActivity() {
     var mapboxMap: MapboxMap? = null
 
     var lbMapLayers: MapLayer? = null
+    var navGraph: NavigationGraph? = null
 
     @SuppressLint("ResourceAsColor", "ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -220,10 +244,10 @@ class BirdsEyeView : AppCompatActivity() {
             { permissions ->
                 val allPermissionsGranted = permissions.all { it.value }
                 if (allPermissionsGranted) {
-                    Toast.makeText( applicationContext, "Permission Granted", Toast.LENGTH_SHORT).show()
+                    Log.w( "PERMISSIONS", "Permission Granted")
                 }
                 else {
-                    Toast.makeText( applicationContext, "One of Permission is Denied", Toast.LENGTH_SHORT).show()
+                    Log.w( "PERMISSIONS", "One of Permission is Denied")
                 }
             }
         reqPermissionLauncher.launch(PERMISSIONS)
@@ -231,7 +255,20 @@ class BirdsEyeView : AppCompatActivity() {
         mapView = findViewById(R.id.mapView)
         mapboxMap = mapView?.getMapboxMap()
 
+        navGraph = setupNavigationGraph()
         onMapReady()
+    }
+
+    private fun removeExtraUI() {
+        mapView?.logo?.updateSettings {
+            enabled = false
+        }
+        mapView?.attribution?.updateSettings {
+            enabled = false
+        }
+        mapView?.scalebar?.updateSettings {
+            enabled = false
+        }
     }
 
     private fun onMapReady() {
@@ -239,12 +276,6 @@ class BirdsEyeView : AppCompatActivity() {
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
-
-                val camera = CameraOptions.Builder()
-                    .center(Point.fromLngLat(120.98945,14.60195))
-                    .zoom(15.0)
-                    .build()
-                mapboxMap?.setCamera(camera)
 
                 val southwest = Point.fromLngLat(120.98452,14.59990)
                 val northeast = Point.fromLngLat(120.99466,14.60415)
@@ -254,6 +285,12 @@ class BirdsEyeView : AppCompatActivity() {
                 val cmBounds: CameraBoundsOptions.Builder = CameraBoundsOptions.Builder()
                 cmBounds.bounds(coordBound)
                 mapboxMap?.setBounds(cmBounds.build())
+
+                val camera = CameraOptions.Builder()
+                    .center(Point.fromLngLat(120.98945,14.60195))
+                    .zoom(15.0)
+                    .build()
+                mapboxMap?.setCamera(camera)
 
                 addAnnotationToMap(southwest.longitude(),southwest.latitude())
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
