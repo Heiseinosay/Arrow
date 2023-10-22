@@ -335,6 +335,27 @@ class NavigationGraph(base: Node?) {
         return Pair(cDist, cLoc)
     }
 
+    public fun requestRoute(
+        origin: Point,
+        destination: Point,
+        // NOTE values in enum Property
+        // NOTE use 'or' to apply multiple property
+        priority: Int = 0
+    ): List<List<Point>> {
+        var (_, nStart) = searchNearest(origin,priority)
+        assert(nStart != null)
+        start = nStart!!
+
+        val q: ArrayDeque<Node> = ArrayDeque()
+        val visited: MutableSet<Node> = mutableSetOf()
+        val calcNode: MutableMap<Node, RouteNode> = mutableMapOf<Node, RouteNode>()
+        val routes: MutableList<MutableList<Node>> = mutableListOf( mutableListOf() )
+
+        q.add(start)
+        calcNode.put(start, RouteNode(null,0.0))
+
+        return listOf( listOf() )
+    }
 
     companion object {
         fun toListofPoints(l: List<Node>): List<Point> {
