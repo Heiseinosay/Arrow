@@ -236,7 +236,7 @@ data class Node(val loc: Point, val property: Int = 0) {
      }
 }
 
-class NavigationGraph(base: Node?) {
+class NavigationGraph(base: Node) {
     // not the root node
     // the starting node is where the search will start
     var start = base
@@ -341,7 +341,7 @@ class NavigationGraph(base: Node?) {
         // NOTE values in enum Property
         // NOTE use 'or' to apply multiple property
         priority: Int = 0
-    ): List<List<Point>> {
+    ): MutableList<MutableList<RouteNode>> {
         var (_, nStart) = searchNearest(origin,priority)
         assert(nStart != null)
         start = nStart!!
@@ -349,23 +349,64 @@ class NavigationGraph(base: Node?) {
         val q: ArrayDeque<Node> = ArrayDeque()
         val visited: MutableSet<Node> = mutableSetOf()
         val calcNode: MutableMap<Node, RouteNode> = mutableMapOf<Node, RouteNode>()
-        val routes: MutableList<MutableList<Node>> = mutableListOf( mutableListOf() )
+        val routes: MutableList<MutableList<RouteNode>> = mutableListOf( mutableListOf() )
 
         q.add(start)
         calcNode.put(start, RouteNode(null,0.0))
 
-        return listOf( listOf() )
+        while(q.isNotEmpty()) {
+            val curr = q.first()
+            q.removeFirstOrNull()
+            // NOTE when the dest is found make the list and append to routes
+            for (i in curr.neighbors.indices) {
+                if ( visited.contains(curr.neighbors[i]) ) continue
+
+                assert(calcNode.get(curr) != null)
+                if (calcNode.get(curr.neighbors[i]) != null) {
+                    if (calcNode.get(curr.neighbors[i])!!.dist > ( calcNode.get(curr)!!.dist + curr.distance[i] )) {
+                        calcNode.put(
+                            curr.neighbors[i],
+                            RouteNode(curr, calcNode.get(curr)!!.dist + curr.distance[i])
+                        )
+                    }
+                }
+                else
+                    calcNode.put(
+                        curr.neighbors[i],
+                        RouteNode(curr, calcNode.get(curr)!!.dist + curr.distance[i])
+                    )
+
+                if (curr.neighbors[i].loc == destination) {
+                    val a = mutableListOf<RouteNode>()
+                    fun toListNode(v: RouteNode?) {
+                        if (v == null) return
+                        a.add(v)
+                        return toListNode(calcNode.get(v.from))
+                    }
+                    toListNode(calcNode.get(curr.neighbors[i]))
+                    // NOTE total distance is stored at len-1
+                    routes.add( a.reversed().toMutableList() )
+                }
+
+                q.add(curr.neighbors[i])
+            }
+
+            visited.add(curr)
+        }
+        return routes
     }
 
     companion object {
         fun toListofPoints(l: List<Node>): List<Point> {
-            assert(false) { "TODO implement" }
-            return listOf<Point>()
+            val ret = mutableListOf<Point>()
+            l.mapTo(ret) { it.loc }
+            return ret
         }
     }
 }
 
 fun setupNavigationGraph(): NavigationGraph {
+    assert(false) { "Apply emergency property" }
     Log.i("setupNavigationGraph","" + POINTS.size)
     val entryexit: Int = Property.Entry.value or Property.Exit.value
     val elev1 = Node(POINTS[0])
@@ -635,6 +676,7 @@ fun setupNavigationGraph(): NavigationGraph {
     return navGraph
 }
 
+// TODO make route List of Point
 fun drawDirection(loadedStyle: Style, route: DirectionsRoute) {
     val geoSource = loadedStyle.getSourceAs<GeoJsonSource>(GEO_SOURCE_ID)
     assert(geoSource != null)
