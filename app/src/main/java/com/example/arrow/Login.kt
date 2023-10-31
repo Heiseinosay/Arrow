@@ -53,13 +53,17 @@ class Login : AppCompatActivity() {
         val loginButton = findViewById<Button>(R.id.btnLogin)
 
         forgotPassword.setOnClickListener {
-            Toast.makeText(this, "Nothing here for now!" , Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this@Login, ForgotPassword::class.java))
         }
         register.setOnClickListener {
             val openRegister = Intent(this@Login, Registration::class.java)
             startActivity(openRegister)
         }
         loginButton.setOnClickListener { performLogin() }
+
+
+        // FORGOT PASSWORD
+
     }
     // GETTING INPUT FROM USE
     private fun performLogin() {
