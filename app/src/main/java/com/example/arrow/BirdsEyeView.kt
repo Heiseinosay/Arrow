@@ -272,6 +272,7 @@ class BirdsEyeView : AppCompatActivity() {
         cvNavDirection.setOnClickListener{
             changeFragment(DirectionsFragment(), ivDirection, tvDirection,
                 listOf(ivProfile, ivExplore), listOf(tvProfile, tvExplore))
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
         cvNavProfile.setOnClickListener {
             changeFragment(ProfileFragment(), ivProfile, tvProfile, listOf(ivDirection,

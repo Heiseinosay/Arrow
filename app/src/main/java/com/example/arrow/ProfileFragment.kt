@@ -51,6 +51,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             editor?.apply()
             FirebaseAuth.getInstance().signOut()
             startActivity(Intent(requireContext(), Login::class.java))
+            // FINISH THE MAIN ACTIVITY
+            getActivity()?.finish();
         }
     }
 
