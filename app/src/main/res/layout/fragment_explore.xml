@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/fragment_explore"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ExploreFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/seachbar"
+            android:layout_width="300dp"
+            android:layout_height="50dp"
+            android:backgroundTint="@color/lightGrey"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:cardMaxElevation="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.493"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.049">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/imageView7"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@raw/student_male"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.053"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.466" />
+
+                <EditText
+                    android:id="@+id/etSearchBar"
+                    android:layout_width="230dp"
+                    android:layout_height="45dp"
+                    android:background="@android:color/transparent"
+                    android:ems="10"
+                    android:hint="Search here"
+                    android:inputType="text"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.8"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.4" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tv_suggestion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Suggestions"
+            android:textSize="12sp"
+            android:layout_marginTop="15dp"
+            app:layout_constraintStart_toStartOf="@+id/seachbar"
+            app:layout_constraintTop_toBottomOf="@+id/seachbar"/>
+
+        <View
+            android:id="@+id/line_name"
+            android:layout_width="300dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="3dp"
+            android:background="@color/medGrey"
+            app:layout_constraintEnd_toEndOf="@+id/seachbar"
+            app:layout_constraintStart_toStartOf="@+id/seachbar"
+            app:layout_constraintTop_toBottomOf="@+id/tv_suggestion" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cv_col_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/line_name"
+            app:layout_constraintEnd_toEndOf="@+id/line_name"
+            app:layout_constraintStart_toStartOf="@+id/line_name">
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tv_frequently"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:text="Frequently Search"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="@+id/tv_suggestion"
+            app:layout_constraintTop_toBottomOf="@+id/cv_col_logo" />
+
+        <View
+            android:id="@+id/line_frequently"
+            android:layout_width="300dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="3dp"
+            android:background="@color/medGrey"
+            app:layout_constraintEnd_toEndOf="@+id/seachbar"
+            app:layout_constraintStart_toStartOf="@+id/seachbar"
+            app:layout_constraintTop_toBottomOf="@+id/tv_frequently" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>
