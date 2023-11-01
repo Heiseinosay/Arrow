@@ -1,11 +1,5 @@
 package com.example.arrow
 
-//import android.preference.PreferenceManager
-
-// Polyline
-//Google Location
-
-//Coordinates Object
 import android.Manifest
 import android.content.Context
 import android.graphics.Bitmap
@@ -23,7 +17,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.gson.JsonObject
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraBoundsOptions
@@ -33,17 +29,21 @@ import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
+import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
+import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
-
-//Local File imports
 
 
 class BirdsEyeView : AppCompatActivity() {
@@ -53,8 +53,7 @@ class BirdsEyeView : AppCompatActivity() {
     private val fromTop: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.from_top_layer)}
     private val toTop: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.to_top_layer)}
 
-
-
+    var polylineAnnotationManager: PolylineAnnotationManager? = null
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -93,7 +92,7 @@ class BirdsEyeView : AppCompatActivity() {
     }
 
     private fun onMapReady() {
-        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clmlyake001u801r8f0nhgal3" ,object: Style.OnStyleLoaded { //clm20kpkw00fp01raf9yaar2u
+        mapboxMap?.loadStyleUri("mapbox://styles/mark-asuncion/clmvnqnd0000101pyh95u4s34" ,object: Style.OnStyleLoaded { //clm20kpkw00fp01raf9yaar2u
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
@@ -263,11 +262,10 @@ class BirdsEyeView : AppCompatActivity() {
         }
         streetView.setOnClickListener{
             streetViewClicked = if(!streetViewClicked){
-                explorationView(this, mapView)
+                explorationView()
                 true
             } else {
                 polylineAnnotationManager?.deleteAll()
-                // polylineAnnotationManager?.update("polyline_$i", PropertyFactory.lineOpacity(opacity))
                 false
             }
         }
@@ -290,5 +288,32 @@ class BirdsEyeView : AppCompatActivity() {
             FAB.startAnimation(toTop)
             FAB.isClickable = false
         }
+    }
+
+
+    private fun explorationView(){
+        polylineAnnotationManager = mapView?.annotations?.createPolylineAnnotationManager()
+        polylineAnnotationManager?.lineCap = (LineCap.ROUND)
+        val blue = ContextCompat.getColor(this, R.color.blue)
+
+        val coordinateSize = Coordinates.gastamToLualhati.size - 1
+        for (i in 0 until coordinateSize){
+            val polylineID = JsonObject()
+            polylineID.addProperty("imageURI", "polyline$i.png")
+            val polylineAnnotationOptions: PolylineAnnotationOptions = PolylineAnnotationOptions()
+                .withPoints(listOf(Coordinates.gastamToLualhati[i], Coordinates.gastamToLualhati[i + 1]))
+                .withLineJoin(LineJoin.ROUND)
+                .withLineColor(blue)
+                .withLineWidth(5.0)
+                .withData(polylineID)
+            polylineAnnotationManager?.create(polylineAnnotationOptions)
+        }
+        val clickListener = OnPolylineAnnotationClickListener { polyline ->
+            val data = polyline.getData()//the value form the data should be trim first
+            //Pass this data to the Panoramic View function
+            Toast.makeText(this, "$data", Toast.LENGTH_SHORT).show()
+            true
+        }
+        polylineAnnotationManager?.addClickListener(clickListener)
     }
 }
