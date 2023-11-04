@@ -1,5 +1,7 @@
 package com.example.arrow.utils
 
+import android.graphics.Color
+import java.lang.System.identityHashCode
 import java.util.Queue
 import android.util.Log
 import com.mapbox.api.directions.v5.models.DirectionsRoute
@@ -8,11 +10,20 @@ import com.mapbox.geojson.Feature
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.Style
+import com.mapbox.maps.extension.style.layers.addLayer
+import com.mapbox.maps.extension.style.layers.generated.LineLayer
+import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.customGeometrySource
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.getSourceAs
 
-val GEO_SOURCE_ID = "DirectionSource"
-val DIRECTION_LAYER_ID = "DirectionLayerSource"
+val TAG = "NAVIGATIONGRAPH"
+val GEO_SOURCE_ID_01 = "DirectionSource01"
+val DIRECTION_LAYER_ID_01 = "DirectionLayerSource01"
+val GEO_SOURCE_ID_02 = "DirectionSource02"
+val DIRECTION_LAYER_ID_02 = "DirectionLayerSource02"
+//val GEO_SOURCE_ID_03 = "DirectionSource03"
+//val DIRECTION_LAYER_ID_03 = "DirectionLayerSource03"
 
 val POINTS = listOf(
 Point.fromLngLat(120.98936069082802192, 14.60273546261073285), // elevator
@@ -197,7 +208,7 @@ fun distanceOf(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
     var dlon = lon2 - lon1;
     var a = Math.pow( Math.sin(dlat/2), 2.0 ) + Math.cos(lat1) * Math.cos(lat2) * Math.pow( Math.sin(dlon/2), 2.0 );
     var c = 2 * Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-    return (6371 * c) * 1000;
+    return Math.abs((6371 * c) * 1000)
 }
 
 fun distanceOf(p1: Point, p2: Point): Double
@@ -206,13 +217,13 @@ fun distanceOf(p1: Point, p2: Point): Double
 enum class Property(val value: Int) {
     Entry(1),
     Exit(2),
-    Room(4),
-    Emergency(6)
+    Emergency(4),
+    Faculty(8)
 }
 
 data class Node(val loc: Point, val property: Int = 0) {
      val neighbors: MutableList<Node> = mutableListOf()
-     // distance in km
+     // distance in m
      val distance: MutableList<Double>  = mutableListOf()
 
      override fun toString(): String =
@@ -240,60 +251,37 @@ class NavigationGraph(base: Node) {
     // not the root node
     // the starting node is where the search will start
     var start = base
+    var MAXIMUM_ROUTE_SIZE = 2
 
-    data class RouteNode(val from: Node? = null, val dist: Double = Double.MAX_VALUE)
+    data class RouteNode(val from: Node? = null, val dist: Double = 100.0)
 
-    fun search(callable: (node: Node, i: Int) -> Unit = { _,_ -> }) {
+    fun searchFor(target: Point): Node? {
         val q: ArrayDeque<Node> = ArrayDeque<Node>()
         val visited: MutableSet<Node> = mutableSetOf<Node>()
         q.add(start)
-
         while (q.isNotEmpty()) {
             val curr = q.first()
             q.removeFirstOrNull()
 
             for (i in curr.neighbors.indices) {
                 if ( visited.contains(curr.neighbors[i]) ) continue
-                callable(curr.neighbors[i],i)
-                q.add(curr.neighbors[i])
-            }
-            visited.add(curr)
-        }
-    }
-
-    fun searchFor(target: Point,setStart: Boolean = false): Node? {
-        val q: ArrayDeque<Node> = ArrayDeque<Node>()
-        val visited: MutableSet<Node> = mutableSetOf<Node>()
-        q.add(start)
-        var ret: Node? = null
-        while (q.isNotEmpty()) {
-            val curr = q.first()
-            q.removeFirstOrNull()
-
-            for (i in curr.neighbors.indices) {
-                if ( visited.contains(curr.neighbors[i]) ) continue
-                if (curr.loc == target) {
-                    ret = curr
-                    q.clear()
-                    break
+                if (curr.neighbors[i].loc == target) {
+                    return curr.neighbors[i]
                 }
                 q.add(curr.neighbors[i])
             }
             visited.add(curr)
         }
-
-        if (setStart && ret != null) this.start = ret
-        return ret
+        return null
     }
 
-    fun searchNearest(target: Point, priority: Int = 0): Pair<Double, Node?> {
+    fun searchNearest(target: Point, priority: Int = 0): Node? {
         val q: ArrayDeque<Node> = ArrayDeque<Node>()
         val visited: MutableSet<Node> = mutableSetOf<Node>()
-        var cDist = Double.MAX_VALUE
+        var cDist = 100.0
         var cLoc: Node? = null
         q.add(start)
 
-        // separate searching to a function and add callback for extra checks
         while (q.isNotEmpty()) {
             val curr = q.first()
             q.removeFirstOrNull()
@@ -306,20 +294,19 @@ class NavigationGraph(base: Node) {
                     curr.neighbors[i].loc.latitude(),
                     curr.neighbors[i].loc.longitude()
                 )
+                // Log.i(TAG,"NewDistance: " + nDist)
 
                 if (priority != 0) {
-                    if (cDist > nDist) {
-                        cLoc?.let {
-                            if (( it.property and priority ) != 0 &&
-                            ( curr.neighbors[i].property and priority ) != 0) {
-                                cDist = nDist
-                                cLoc = curr.neighbors[i]
-                            }
-                        }
-                    }
-                    else if ( (curr.neighbors[i].property and priority) != 0 ) {
+                    if (cLoc == null && curr.neighbors[i].property and priority != 0 ) {
                         cDist = nDist
                         cLoc = curr.neighbors[i]
+                    }
+                    else if (cDist > nDist && curr.neighbors[i].property and priority != 0 && cLoc != null ) {
+                        if (curr.neighbors[i].property == priority ||
+                        ( ( cLoc.property and priority ) != 0 && cLoc.property != priority) ) {
+                            cDist = nDist
+                            cLoc = curr.neighbors[i]
+                        }
                     }
                 }
                 else if (cDist > nDist) {
@@ -331,39 +318,28 @@ class NavigationGraph(base: Node) {
             }
             visited.add(curr)
         }
-
-        return Pair(cDist, cLoc)
+        return cLoc
     }
 
-    public fun requestRoute(
-        origin: Point,
-        destination: Point,
-        // NOTE values in enum Property
-        // NOTE use 'or' to apply multiple property
-        priority: Int = 0
-    ): MutableList<MutableList<RouteNode>> {
-        var (_, nStart) = searchNearest(origin,priority)
-        assert(nStart != null)
-        start = nStart!!
-
+    fun findPath(destination: Point, disabled: MutableSet<Node>): Pair< Double, List<Node> > {
         val q: ArrayDeque<Node> = ArrayDeque()
         val visited: MutableSet<Node> = mutableSetOf()
         val calcNode: MutableMap<Node, RouteNode> = mutableMapOf<Node, RouteNode>()
-        val routes: MutableList<MutableList<RouteNode>> = mutableListOf( mutableListOf() )
-
         q.add(start)
         calcNode.put(start, RouteNode(null,0.0))
 
         while(q.isNotEmpty()) {
             val curr = q.first()
             q.removeFirstOrNull()
-            // NOTE when the dest is found make the list and append to routes
             for (i in curr.neighbors.indices) {
+//                Log.i(TAG+"ROUTE", " " + i + " " + q.size)
+                if ( disabled.contains(curr.neighbors[i]) ) continue
                 if ( visited.contains(curr.neighbors[i]) ) continue
 
                 assert(calcNode.get(curr) != null)
                 if (calcNode.get(curr.neighbors[i]) != null) {
-                    if (calcNode.get(curr.neighbors[i])!!.dist > ( calcNode.get(curr)!!.dist + curr.distance[i] )) {
+                    if (calcNode.get(curr.neighbors[i])!!.dist >
+                        ( calcNode.get(curr)!!.dist + curr.distance[i] )) {
                         calcNode.put(
                             curr.neighbors[i],
                             RouteNode(curr, calcNode.get(curr)!!.dist + curr.distance[i])
@@ -377,37 +353,88 @@ class NavigationGraph(base: Node) {
                     )
 
                 if (curr.neighbors[i].loc == destination) {
-                    val a = mutableListOf<RouteNode>()
-                    fun toListNode(v: RouteNode?) {
-                        if (v == null) return
-                        a.add(v)
-                        return toListNode(calcNode.get(v.from))
+                    val a = mutableListOf<Node>()
+                    fun toListRNode(v: RouteNode?) {
+                        if (v == null || v.from == null) return
+                        a.add(v.from)
+                        return toListRNode(calcNode.get(v.from))
                     }
-                    toListNode(calcNode.get(curr.neighbors[i]))
-                    // NOTE total distance is stored at len-1
-                    routes.add( a.reversed().toMutableList() )
+                    a.add( curr.neighbors[i] )
+                    toListRNode(calcNode.get(curr.neighbors[i]))
+                    val d = calcNode.get( curr.neighbors[i] )!!.dist
+                    Log.i(TAG,"Found Route: \n" + a.reversed())
+                    return Pair(d, a.reversed().toMutableList() )
                 }
-
                 q.add(curr.neighbors[i])
             }
 
             visited.add(curr)
         }
-        return routes
+        return Pair(0.0,listOf())
     }
 
-    companion object {
-        fun toListofPoints(l: List<Node>): List<Point> {
-            val ret = mutableListOf<Point>()
-            l.mapTo(ret) { it.loc }
-            return ret
+    public fun requestRoute(
+        origin: Point,
+        destination: Point,
+        // NOTE values in enum Property
+        // NOTE use 'or' to apply multiple properties
+        priority: Int = 0,
+        customStart: Point? = null
+    ): List<List<Point>> {
+        if (customStart == null){
+            val nStart = searchNearest(origin, priority)
+            // assert(nStart != null)
+            if (nStart != null)
+                start = nStart
         }
+        else {
+            searchFor(customStart)?.let {
+                start = it
+            } ?: run{
+                return requestRoute(origin, destination, priority)
+            }
+        }
+
+        val routes: MutableList<Pair< Double,List<Node> >> = mutableListOf()
+        val disabled: MutableSet<Node> = mutableSetOf()
+
+        for (i in 1..MAXIMUM_ROUTE_SIZE) {
+            val froute = findPath(destination, disabled)
+            Log.i(TAG+"froute", "" + froute)
+            if (froute.second.isNotEmpty()) {
+                routes.add(froute)
+                if (froute.second.size >= 3) {
+                    disabled.add(froute.second[2])
+                }
+            }
+        }
+
+        val sortedRoutes = routes.sortedWith (
+            object: Comparator<Pair< Double,List<Node> >> {
+            override fun compare(o1: Pair< Double,List<Node> >, o2: Pair< Double,List<Node> >) : Int {
+                if (o1.first > o2.first) {
+                    return 1
+                }
+                return -1
+            }
+        })
+
+        val ret = mutableListOf<MutableList<Point>>()
+        for (i in sortedRoutes) {
+            val r = mutableListOf<Point>()
+            r.add(origin)
+            for (j in i.second) {
+                r.add(j.loc)
+            }
+            ret.add(r)
+        }
+        return ret
     }
 }
 
 fun setupNavigationGraph(): NavigationGraph {
-    assert(false) { "Apply emergency property" }
-    Log.i("setupNavigationGraph","" + POINTS.size)
+    // assert(false) { "Apply emergency property" }
+    // Log.i("setupNavigationGraph","" + POINTS.size)
     val entryexit: Int = Property.Entry.value or Property.Exit.value
     val elev1 = Node(POINTS[0])
     val elev2 = Node(POINTS[1])
@@ -418,6 +445,7 @@ fun setupNavigationGraph(): NavigationGraph {
     elev2.add(Node(ROOMS[42], entryexit))?.let { it.add(elev2) }
     elev2.add(Node(ROOMS[49], entryexit))?.let { it.add(elev2) }
     val elev2sideMiddle = elev2.add(Node(POINTS[2]))
+    elev2sideMiddle!!.add(elev2)
     val elev2SideTop = Node(POINTS[3])
     val elev2SideBot = Node(POINTS[4])
     elev2sideMiddle?.add(elev2SideTop)
@@ -555,6 +583,7 @@ fun setupNavigationGraph(): NavigationGraph {
     } } } } } } } } } } } } } }
 
     val elev1sideMiddle = elev1.add(Node(POINTS[30]))
+    elev1sideMiddle!!.add(elev1)
     val elev1SideTop = Node(POINTS[31])
     val elev1SideBot = Node(POINTS[32])
     elev1sideMiddle?.add(elev1SideTop)
@@ -654,7 +683,7 @@ fun setupNavigationGraph(): NavigationGraph {
         nnnn.add(Node(POINTS[56]))?.let { x ->
 
         x.add(nnnn)
-        x.add(Node(ROOMS[43], entryexit))?.let { it.add(x) }
+        x.add(Node(ROOMS[43], entryexit or Property.Faculty.value))?.let { it.add(x) }
         x.add(Node(POINTS[57]))?.let { xx ->
 
         xx.add(x)
@@ -671,18 +700,32 @@ fun setupNavigationGraph(): NavigationGraph {
 
     val navGraph = NavigationGraph(elev1)
 
-    Log.i("NAVIGATIONTREE", navGraph.start?.debug()!!)
+    // Log.i(TAG, navGraph.start?.debug()!!)
 
     return navGraph
 }
 
-// TODO make route List of Point
-fun drawDirection(loadedStyle: Style, route: DirectionsRoute) {
-    val geoSource = loadedStyle.getSourceAs<GeoJsonSource>(GEO_SOURCE_ID)
-    assert(geoSource != null)
-    geoSource?.feature(
-        Feature.fromGeometry(
-            route.geometry()?.let { LineString.fromPolyline(it, PRECISION_6) }
-        )
+
+fun initDirectionLayer(loadedStyle: Style) {
+    loadedStyle.addSource(GeoJsonSource.Builder(GEO_SOURCE_ID_01).build())
+    loadedStyle.addLayer(
+        LineLayer(DIRECTION_LAYER_ID_01, GEO_SOURCE_ID_01)
+            .lineWidth(4.5)
+            .lineColor(Color.GREEN)
     )
+    loadedStyle.addSource(GeoJsonSource.Builder(GEO_SOURCE_ID_02).build())
+    loadedStyle.addLayer(
+        LineLayer(DIRECTION_LAYER_ID_02, GEO_SOURCE_ID_02)
+            .lineWidth(3.5)
+            .lineColor(Color.GRAY)
+            .lineOpacity(.5)
+    )
+}
+
+fun drawDirection(loadedStyle: Style, route: List<Point>, id: String) {
+    loadedStyle.getSourceAs<GeoJsonSource>(id)?.let {
+        it.feature(
+            Feature.fromGeometry(LineString.fromLngLats(route.toMutableList())),
+        )
+    }
 }

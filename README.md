@@ -10,4 +10,4 @@ prior: research about how to implement the project using android studio and othe
 
 # Custom Navigation Checklist
 - [x] Construct NodeGraph
-- [ ] Implement [Dijkstra](https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/)
+- [x] Implement [Dijkstra](https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/)
