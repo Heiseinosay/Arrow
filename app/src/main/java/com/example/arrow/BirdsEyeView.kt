@@ -1,6 +1,7 @@
 package com.example.arrow
 import com.example.arrow.utils.*
 
+import kotlin.concurrent.thread
 import android.Manifest
 import android.R.attr.button
 import android.animation.AnimatorSet
@@ -77,10 +78,6 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.logo.logo
 import com.mapbox.maps.plugin.scalebar.scalebar
-import org.checkerframework.common.returnsreceiver.qual.This
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 
 class BirdsEyeView : AppCompatActivity() {
@@ -276,6 +273,7 @@ class BirdsEyeView : AppCompatActivity() {
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
+                initDirectionLayer(style)
 
                 val southwest = Point.fromLngLat(120.98452,14.59990)
                 val northeast = Point.fromLngLat(120.99466,14.60415)
@@ -306,8 +304,31 @@ class BirdsEyeView : AppCompatActivity() {
                     7
                 )
                 // set floors
-                 setLBFloors(lbMapLayers!!)
+                setLBFloors(lbMapLayers!!)
                 lbMapLayers?.setCurrFloor(1)
+
+                thread(true,true) {
+                    val routes = navGraph?.requestRoute(
+//                        Point.fromLngLat(120.98921956026595126, 14.60261588445797543),
+                        ROOMS[18],
+//                        ROOMS[1],
+                        ROOMS[32],
+                        0,
+                        // Property.Entry.value or Property.Exit.value,
+//                        POINTS[0]
+                        // ROOMS[41]
+                    )
+                    Log.i(TAG, "Routes size " + routes!!.size)
+                    if (routes!!.isNotEmpty()) {
+                        var c = 0
+                        for (i in routes) {
+                            var id = GEO_SOURCE_ID_01
+                            if (c % 2 != 0) id = GEO_SOURCE_ID_02
+                            c++
+                            drawDirection(style, i, id)
+                        }
+                    }
+                }
             }
         })
     }
