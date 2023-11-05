@@ -1,8 +1,8 @@
 package com.example.arrow
 
+// <<<<<<< registration-2
 import android.annotation.SuppressLint
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -10,9 +10,8 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.cardview.widget.CardView
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.card.MaterialCardView
-// <<<<<<< registration-2
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -21,7 +20,6 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import org.w3c.dom.Text
 // >>>>>>> master
 
 class RegistrationSecondPart : AppCompatActivity() {
@@ -30,6 +28,7 @@ class RegistrationSecondPart : AppCompatActivity() {
     private var user: FirebaseUser? = null
     private var classStatus = -1
     private lateinit var role: String
+    private lateinit var profile: String
 
     @SuppressLint("ResourceAsColor")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +84,7 @@ class RegistrationSecondPart : AppCompatActivity() {
                 "date" to dateFormatted!!,
                 "time" to timeFormatted!!,
                 "role" to role,
+                "profile" to profile
             )
             createAccount(newUser, password)
         }
@@ -100,6 +100,7 @@ class RegistrationSecondPart : AppCompatActivity() {
         when (status) {
             0 -> {
                 role = "Student"
+                profile = "Student_male"
                 student.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 employee.setCardBackgroundColor(resources.getColor(R.color.white))
                 visitor.setCardBackgroundColor(resources.getColor(R.color.white))
@@ -109,6 +110,7 @@ class RegistrationSecondPart : AppCompatActivity() {
 
             } 1 -> {
                 role = "Employee"
+                profile = "Employee_male"
                 employee.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 student.setCardBackgroundColor(resources.getColor(R.color.white))
                 visitor.setCardBackgroundColor(resources.getColor(R.color.white))
@@ -117,6 +119,7 @@ class RegistrationSecondPart : AppCompatActivity() {
                 txtVisitor.setTextColor(resources.getColor(R.color.black))
             } 2 -> {
                 role = "Visitor"
+                profile = "Visitor"
                 visitor.setCardBackgroundColor(resources.getColor(R.color.darkGrey))
                 student.setCardBackgroundColor(resources.getColor(R.color.white))
                 employee.setCardBackgroundColor(resources.getColor(R.color.white))
