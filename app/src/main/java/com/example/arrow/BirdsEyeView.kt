@@ -60,6 +60,7 @@ import com.mapbox.geojson.Feature
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraBoundsOptions
+import com.mapbox.maps.MapSnapshotInterface
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.CoordinateBounds
 import com.mapbox.maps.MapView
@@ -78,7 +79,9 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.attribution.attribution
+import com.mapbox.maps.plugin.gestures.OnMapClickListener
 import com.mapbox.maps.plugin.gestures.OnMoveListener
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
@@ -363,6 +366,29 @@ class BirdsEyeView : AppCompatActivity() {
                 initLocationComponent()
                 setupGesturesListener()
                 initDirectionLayer(style)
+                mapboxMap?.addOnMapClickListener(object: OnMapClickListener {
+//                    fun onMapClick(point: LatLng): Boolean {
+//                        val pointf = mapboxMap.getProjection().toScreenLocation(point);
+//                        val rectF = new RectF(pointf.x - 10, pointf.y - 10, pointf.x + 10, pointf.y + 10);
+//                        val featureList = mapboxMap.queryRenderedFeatures(rectF, GEO_SOURCE_ID_01);
+//                        if (featureList.size() > 0) {
+//                            for (feature in featureList) {
+//                                Log.i(TAG, "Feature found with %1$s", feature.toJson());
+//                                Toast.makeText(ClickOnLayerActivity.this, R.string.click_on_polygon_toast,
+//                                    Toast.LENGTH_SHORT).show();
+//                            }
+//                            return true;
+//                        }
+//                        return false;
+//                    }
+                    override fun onMapClick(point: Point): Boolean {
+                        // val coordinate = MapSnapshotInterface.screenCoordinate(point)
+//                        val featureList = mapboxMap?.queryRenderedFeatures( )
+                        Log.i("OnMapClick", "" + point)
+                        addAnnotationToMap(point.longitude(), point.latitude())
+                        return true
+                    }
+                })
 
                 val southwest = Point.fromLngLat(120.98452,14.59990)
                 val northeast = Point.fromLngLat(120.99466,14.60415)
