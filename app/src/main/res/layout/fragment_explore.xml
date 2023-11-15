@@ -64,19 +64,20 @@
             android:id="@+id/tv_suggestion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="Suggestions"
             android:textSize="12sp"
-            android:layout_marginTop="15dp"
             app:layout_constraintStart_toStartOf="@+id/seachbar"
-            app:layout_constraintTop_toBottomOf="@+id/seachbar"/>
+            app:layout_constraintTop_toBottomOf="@+id/seachbar" />
 
         <View
             android:id="@+id/line_name"
             android:layout_width="300dp"
             android:layout_height="2dp"
-            android:layout_marginTop="3dp"
+            android:layout_marginTop="12dp"
             android:background="@color/medGrey"
             app:layout_constraintEnd_toEndOf="@+id/seachbar"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="@+id/seachbar"
             app:layout_constraintTop_toBottomOf="@+id/tv_suggestion" />
 
@@ -93,21 +94,42 @@
             android:id="@+id/tv_frequently"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
+            android:layout_marginBottom="9dp"
             android:text="Frequently Search"
             android:textSize="12sp"
-            app:layout_constraintStart_toStartOf="@+id/tv_suggestion"
-            app:layout_constraintTop_toBottomOf="@+id/cv_col_logo" />
+            app:layout_constraintBottom_toTopOf="@+id/line_frequently"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/line_frequently"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.998" />
 
         <View
             android:id="@+id/line_frequently"
             android:layout_width="300dp"
             android:layout_height="2dp"
-            android:layout_marginTop="3dp"
             android:background="@color/medGrey"
-            app:layout_constraintEnd_toEndOf="@+id/seachbar"
-            app:layout_constraintStart_toStartOf="@+id/seachbar"
-            app:layout_constraintTop_toBottomOf="@+id/tv_frequently" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.495"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.736" />
+
+        <ScrollView
+            android:id="@+id/svSuggestions"
+            android:layout_width="280dp"
+            android:layout_height="350dp"
+            android:fadeScrollbars="true"
+            android:overScrollMode="never"
+            android:requiresFadingEdge="vertical"
+            android:scrollbars="none"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.572"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.385" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

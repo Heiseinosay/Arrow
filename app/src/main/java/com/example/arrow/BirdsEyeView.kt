@@ -15,7 +15,6 @@ import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.GONE
@@ -39,6 +38,7 @@ import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
+import com.example.sqlitedatabase.DataBaseHandler
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
@@ -64,9 +64,11 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.plugin.animation.MapAnimationOptions
+import com.mapbox.maps.plugin.animation.flyTo
 
 
-class BirdsEyeView : AppCompatActivity() {
+class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var viewModel: ViewModel
     private lateinit var maleImage: ImageView
@@ -75,7 +77,19 @@ class BirdsEyeView : AppCompatActivity() {
     private var userUID: String? = null
     private lateinit var userRef: DocumentReference
     private lateinit var bottomSheet: FrameLayout
+    lateinit var bottomSheetBehavior: BottomSheetBehavior<FrameLayout>
     private lateinit var fragmentManager: FragmentManager
+    private var startValue:Float = 0.0f
+    private var searchValue:String = ""
+
+    // FRAGMENT VALUE PASS
+    private val fragment: ExploreFragment by lazy {
+        supportFragmentManager.findFragmentById(R.id.fragment_explore) as ExploreFragment
+    }
+    override fun onValuePassed(value: String) {
+        searchValue = value
+        searchAnimate(searchValue)
+    }
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -93,8 +107,10 @@ class BirdsEyeView : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
 
+
+
         // SET STATUS BAR TO TRANSPARENT
-//        window.statusBarColor = resources.getColor(android.R.color.transparent)
+        // window.statusBarColor = resources.getColor(android.R.color.transparent)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         // FLOOR SWITCHING START
@@ -115,6 +131,15 @@ class BirdsEyeView : AppCompatActivity() {
         scrollView.post {
             scrollView.fullScroll(ScrollView.FOCUS_DOWN)
         }
+
+
+        val btnTest = findViewById<Button>(R.id.btnTest)
+
+        btnTest.setOnClickListener {
+            // PANORAMA TEST HERE
+            Toast.makeText(this, "Panorama test", Toast.LENGTH_SHORT).show()
+        }
+
 
         val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
 
@@ -249,7 +274,7 @@ class BirdsEyeView : AppCompatActivity() {
         changeFragment(ExploreFragment(), ivExplore, tvExplore,
             listOf(ivDirection, ivProfile), listOf(tvDirection, tvProfile))
 
-        val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 when (newState) {
@@ -331,7 +356,7 @@ class BirdsEyeView : AppCompatActivity() {
 
                 val camera = CameraOptions.Builder()
                     .center(Point.fromLngLat(120.98945,14.60195))
-                    .zoom(15.0)
+                    .zoom(20.0)
                     .build()
                 mapboxMap?.setCamera(camera)
 
@@ -362,6 +387,93 @@ class BirdsEyeView : AppCompatActivity() {
                 lbMapLayers?.setCurrFloor(1)
             }
         })
+    }
+
+    // SEARCH ANIMATION
+    @SuppressLint("Range")
+    private fun searchAnimate(searchValue: String) {
+
+        // FLOOR ID'S
+        val tvGroundFloor = findViewById<TextView>(R.id.groundFloor)
+        val tvSecondFloor = findViewById<TextView>(R.id.secondFloor)
+        val tvThridFloor = findViewById<TextView>(R.id.thirdFloor)
+        val tvFourthFloor = findViewById<TextView>(R.id.fourthFloor)
+        val tvFifthFloor = findViewById<TextView>(R.id.fifthFloor)
+        val tvSixthFloor = findViewById<TextView>(R.id.sixthFloor)
+        val tvSeventhFloor = findViewById<TextView>(R.id.seventhFloor)
+        val tvEightFloor = findViewById<TextView>(R.id.eightFloor)
+        val tvNinethFloor = findViewById<TextView>(R.id.ninethFloor)
+        val roofDeck = findViewById<TextView>(R.id.roofDeck)
+        val scrollView = findViewById<ScrollView>(R.id.myScroll)
+
+        val dbHelper = DataBaseHandler(this)
+        // Get a readable database instance
+        val sqlDb = dbHelper.readableDatabase
+        val cursor = sqlDb.rawQuery("SELECT * FROM coords WHERE RoomID = '$searchValue'", null)
+
+        if (cursor.moveToFirst()) {
+            val longitude = cursor.getDouble(cursor.getColumnIndex("Longitude"))
+            val latitude = cursor.getDouble(cursor.getColumnIndex("Latitude"))
+            val floor = cursor.getInt(cursor.getColumnIndex("Floor"))
+            when(floor) {
+                1 -> {
+                    tvGroundFloor.performClick()
+                    scrollView.smoothScrollTo(0, 400)
+                }
+                2 -> {
+                    tvSecondFloor.performClick()
+                    scrollView.smoothScrollTo(0, 400)
+                }
+                3 -> {
+                    tvThridFloor.performClick()
+                    scrollView.smoothScrollTo(0, 400)
+                }
+                4 -> {
+                    tvFourthFloor.performClick()
+                    scrollView.smoothScrollTo(0, 350)
+                }
+                5 -> {
+                    tvFifthFloor.performClick()
+                    scrollView.smoothScrollTo(0, 250)
+                }
+                6 -> {
+                    tvSixthFloor.performClick()
+                    scrollView.smoothScrollTo(0, 180)
+                }
+                7 -> {
+                    tvSeventhFloor.performClick()
+                    scrollView.smoothScrollTo(0, 80)
+                }
+                8 -> {
+                    tvEightFloor.performClick()
+                    scrollView.smoothScrollTo(0, 0)
+                }
+                9 -> {
+                    tvNinethFloor.performClick()
+                    scrollView.smoothScrollTo(0, 0)
+                }
+            }
+
+            val camera = CameraOptions.Builder()
+                .center(Point.fromLngLat(longitude,latitude))
+                .zoom(22.0)
+                .bearing(0.0)
+                .build()
+            val animationOptions = MapAnimationOptions.mapAnimationOptions {
+                duration(3000) // Duration in milliseconds for the animation
+            }
+            mapboxMap?.flyTo(camera, animationOptions)
+
+            // Toast.makeText(this, "$longitude $latitude $floor", Toast.LENGTH_SHORT).show()
+        } else {
+            // Handle the case when no matching data is found
+            Toast.makeText(this, "No data found for RoomID: $searchValue", Toast.LENGTH_SHORT).show()
+        }
+
+        cursor.close()
+        sqlDb.close()
+
+
     }
 
     // NAVIGATION ANIMATION START
