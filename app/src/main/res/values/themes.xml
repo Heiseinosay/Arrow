@@ -22,10 +22,6 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 
-    <style name="CircularShape">
-        <item name="cornerSize">50%</item>
-    </style>
-
     <style name="resetPasswordTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
