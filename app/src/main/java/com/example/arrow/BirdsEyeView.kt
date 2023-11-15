@@ -239,11 +239,9 @@ class BirdsEyeView : AppCompatActivity() {
         val focusLocation = findViewById<FloatingActionButton>(R.id.focusLocation)
         val layerButton = findViewById<FloatingActionButton>(R.id.layerButton)
         val streetView = findViewById<FloatingActionButton>(R.id.streetView)
-        val arView = findViewById<FloatingActionButton>(R.id.arView)
         val birdsView = findViewById<FloatingActionButton>(R.id.birdsView)
 
         val streetViewText = findViewById<TextView>(R.id.streetViewText)
-        val arViewText = findViewById<TextView>(R.id.arViewText)
         val birdsViewText = findViewById<TextView>(R.id.birdsViewText)
 
         focusLocation.setOnClickListener {
@@ -251,9 +249,6 @@ class BirdsEyeView : AppCompatActivity() {
         layerButton.setOnClickListener{
             setButton(clicked, streetView)
             setButton(clicked, streetViewText)
-
-            setButton(clicked, arView)
-            setButton(clicked, arViewText)
 
             setButton(clicked, birdsView)
             setButton(clicked, birdsViewText)
@@ -268,9 +263,6 @@ class BirdsEyeView : AppCompatActivity() {
                 polylineAnnotationManager?.deleteAll()
                 false
             }
-        }
-        arView.setOnClickListener {
-            Toast.makeText(this, "AR View", Toast.LENGTH_SHORT).show()
         }
         birdsView.setOnClickListener {
 
@@ -309,11 +301,21 @@ class BirdsEyeView : AppCompatActivity() {
             polylineAnnotationManager?.create(polylineAnnotationOptions)
         }
         val clickListener = OnPolylineAnnotationClickListener { polyline ->
-            val data = polyline.getData()//the value form the data should be trim first
+            val data = polyline.getData()
+            val jsonObject = data?.asJsonObject
+            val imageURI = jsonObject?.get("imageURI")?.asString
             //Pass this data to the Panoramic View function
-            Toast.makeText(this, "$data", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, imageURI, Toast.LENGTH_SHORT).show()
             true
         }
         polylineAnnotationManager?.addClickListener(clickListener)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        val streetView = findViewById<FloatingActionButton>(R.id.streetView)
+        val birdsView = findViewById<FloatingActionButton>(R.id.birdsView)
+        streetView.startAnimation(toTop)
+        birdsView.startAnimation(toTop)
     }
 }
