@@ -4,8 +4,6 @@ import android.graphics.Color
 import java.lang.System.identityHashCode
 import java.util.Queue
 import android.util.Log
-import com.mapbox.api.directions.v5.models.DirectionsRoute
-import com.mapbox.core.constants.Constants.PRECISION_6
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point

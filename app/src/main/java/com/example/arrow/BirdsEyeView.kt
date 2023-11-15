@@ -50,12 +50,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.mapbox.android.gestures.MoveGestureDetector
-import com.mapbox.api.directions.v5.DirectionsCriteria
-import com.mapbox.api.directions.v5.MapboxDirections
-import com.mapbox.api.directions.v5.models.DirectionsResponse
-import com.mapbox.api.directions.v5.models.DirectionsRoute
-import com.mapbox.api.directions.v5.models.RouteOptions
-import com.mapbox.core.constants.Constants.PRECISION_6
+
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
@@ -403,10 +398,10 @@ class BirdsEyeView : AppCompatActivity() {
 //                        ROOMS[1],
                         ROOMS[18],
 //                        ROOMS[32],
-//                        0,
-                         Property.Entry.value or Property.Exit.value,
+                        0,
+                         //Property.Entry.value or Property.Exit.value,
 //                        POINTS[0]
-                        // ROOMS[41]
+                        ROOMS[41]
                     )
                     Log.i(TAG, "Routes size " + routes!!.size)
                     if (routes!!.isNotEmpty()) {
