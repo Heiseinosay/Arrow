@@ -54,6 +54,7 @@ class BirdsEyeView : AppCompatActivity() {
     private val toTop: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.to_top_layer)}
 
     var polylineAnnotationManager: PolylineAnnotationManager? = null
+    var clicked = false
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -234,7 +235,7 @@ class BirdsEyeView : AppCompatActivity() {
     }
 
     private fun layerButtonListener() {
-        var clicked = false
+
         var streetViewClicked = false
         val focusLocation = findViewById<FloatingActionButton>(R.id.focusLocation)
         val layerButton = findViewById<FloatingActionButton>(R.id.layerButton)
@@ -315,7 +316,12 @@ class BirdsEyeView : AppCompatActivity() {
         super.onPause()
         val streetView = findViewById<FloatingActionButton>(R.id.streetView)
         val birdsView = findViewById<FloatingActionButton>(R.id.birdsView)
-        streetView.startAnimation(toTop)
-        birdsView.startAnimation(toTop)
+        if(clicked){
+            streetView.startAnimation(fromTop)
+            birdsView.startAnimation(fromTop)
+        } else{
+            streetView.startAnimation(toTop)
+            birdsView.startAnimation(toTop)
+        }
     }
 }
