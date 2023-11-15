@@ -11,6 +11,9 @@
         <item name="colorAccent">@color/darkRed</item>
 <!--        <item name="android:textColorSecondary">UNCHECKEDCOLOR</item>-->
     </style>
+    <style name="CircularShape">
+        <item name="cornerSize">50%</item>
+    </style>
 
     <style name="Theme.Arrow" parent="Base.Theme.Arrow" />
     <style name="birdsEyeTransparent" parent="Theme.Material3.DayNight.NoActionBar">
