@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Arrow</string>
     <string name="mapbox_access_token">pk.eyJ1IjoibWFyay1hc3VuY2lvbiIsImEiOiJjbGxnM2o2OWwwejQ3M3FuMXU2aGd4YWd4In0.84NuaxrOsBni0ufM9-Ud4g</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
+
