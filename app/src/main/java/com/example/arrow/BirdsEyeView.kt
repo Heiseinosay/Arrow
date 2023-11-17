@@ -15,7 +15,9 @@ import android.graphics.Canvas
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -85,6 +87,11 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
+
+import com.huawei.hms.panorama.Panorama
+import com.huawei.hms.panorama.PanoramaInterface
+import com.huawei.hms.support.api.client.ResultCallback
+
 
 
 
@@ -166,7 +173,12 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
         btnTest.setOnClickListener {
             // PANORAMA TEST HERE
-            Toast.makeText(this, "Panorama test", Toast.LENGTH_SHORT).show()
+           // Toast.makeText(this, "Panorama test", Toast.LENGTH_SHORT).show()
+            val uri = Uri.parse("android.resource://" + packageName + "/" + R.drawable.imagetest3)
+            Panorama.getInstance()
+                .loadImageInfo(this, uri, PanoramaInterface.IMAGE_TYPE_RING)
+                .setResultCallback(ResultCallbackImpl())
+
         }
 
 
@@ -833,6 +845,27 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         } else{
             streetView.startAnimation(toTop)
             birdsView.startAnimation(toTop)
+        }
+    }
+
+    // PANORAMA
+    private inner class ResultCallbackImpl : ResultCallback<PanoramaInterface.ImageInfoResult> {
+        override fun onResult(panoramaResult: PanoramaInterface.ImageInfoResult) {
+            if (panoramaResult == null) {
+                Log.i("Mytag", "panoramaResult is null")
+                return
+            }
+
+            if (panoramaResult.status.isSuccess) {
+                val intent = panoramaResult.imageDisplayIntent
+                if (intent != null) {
+                    startActivity(intent)
+                } else {
+                    Log.i("Mytag", "unknown error, view intent is null")
+                }
+            } else {
+                Log.i("Mytag", "error status : ${panoramaResult.status}")
+            }
         }
     }
 }
