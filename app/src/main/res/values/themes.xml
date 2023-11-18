@@ -11,16 +11,15 @@
         <item name="colorAccent">@color/darkRed</item>
 <!--        <item name="android:textColorSecondary">UNCHECKEDCOLOR</item>-->
     </style>
+    <style name="CircularShape">
+        <item name="cornerSize">50%</item>
+    </style>
 
     <style name="Theme.Arrow" parent="Base.Theme.Arrow" />
     <style name="birdsEyeTransparent" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-    </style>
-
-    <style name="CircularShape">
-        <item name="cornerSize">50%</item>
     </style>
 
     <style name="resetPasswordTheme" parent="Theme.Material3.DayNight.NoActionBar">
