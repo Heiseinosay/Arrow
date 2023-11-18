@@ -154,13 +154,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
 
-        // USER LOCATION FOCUS
-        val focusLocation = findViewById<FloatingActionButton>(R.id.focusLocation)
-        focusLocation.setOnClickListener {
-            Toast.makeText(this, "Working", Toast.LENGTH_SHORT).show()
-            initLocationComponent()
-        }
-
         // SET STATUS BAR TO TRANSPARENT
         // window.statusBarColor = resources.getColor(android.R.color.transparent)
         WindowCompat.setDecorFitsSystemWindows(window, false)

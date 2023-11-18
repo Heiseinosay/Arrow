@@ -185,7 +185,7 @@ class ExploreFragment : Fragment(R.layout.fragment_explore), FragmentToActivityS
                     view?.findViewById<ScrollView>(R.id.svSuggestions)?.addView(linearLayout)
                     totalSuggestions = suggestions.size
                 } else {
-                    Toast.makeText(context, "Empty", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, "Empty", Toast.LENGTH_SHORT).show()
                     Log.e("DB_TEST", "No data in the cursor or cursor is null.")
                 }
 
