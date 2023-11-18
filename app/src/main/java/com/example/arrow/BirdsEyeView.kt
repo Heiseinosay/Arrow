@@ -15,6 +15,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.GONE
@@ -66,6 +67,7 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
+import kotlin.concurrent.thread
 
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
@@ -81,6 +83,8 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private lateinit var fragmentManager: FragmentManager
     private var startValue:Float = 0.0f
     private var searchValue:String = ""
+    public var userLoc: Point? = null
+    lateinit var navGraph: NavigationGraph
 
     // FRAGMENT VALUE PASS
     private val fragment: ExploreFragment by lazy {
@@ -316,7 +320,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
         cvNavDirection.setOnClickListener{
-            changeFragment(DirectionsFragment(), ivDirection, tvDirection,
+            changeFragment(DirectionsFragment(this), ivDirection, tvDirection,
                 listOf(ivProfile, ivExplore), listOf(tvProfile, tvExplore))
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
@@ -345,6 +349,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         mapView = findViewById(R.id.mapView)
         mapboxMap = mapView?.getMapboxMap()
 
+        navGraph = setupNavigationGraph()
         onMapReady()
     }
 
@@ -353,12 +358,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             override fun onStyleLoaded(style: Style) {
                 initLocationComponent()
                 setupGesturesListener()
-
-                val camera = CameraOptions.Builder()
-                    .center(Point.fromLngLat(120.98945,14.60195))
-                    .zoom(20.0)
-                    .build()
-                mapboxMap?.setCamera(camera)
+                initDirectionLayer(style)
 
                 val southwest = Point.fromLngLat(120.98452,14.59990)
                 val northeast = Point.fromLngLat(120.99466,14.60415)
@@ -368,6 +368,12 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 val cmBounds: CameraBoundsOptions.Builder = CameraBoundsOptions.Builder()
                 cmBounds.bounds(coordBound)
                 mapboxMap?.setBounds(cmBounds.build())
+
+                val camera = CameraOptions.Builder()
+                    .center(Point.fromLngLat(120.98945,14.60195))
+                    .zoom(20.0)
+                    .build()
+                mapboxMap?.setCamera(camera)
 
                 addAnnotationToMap(southwest.longitude(),southwest.latitude())
                 addAnnotationToMap(northeast.longitude(), northeast.latitude())
@@ -513,6 +519,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     }
 
     private val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+        userLoc = it
         mapboxMap?.setCamera(CameraOptions.Builder().center(it).build())
         mapView?.gestures?.focalPoint = mapboxMap?.pixelForCoordinate(it)
     }
@@ -709,5 +716,38 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
     fun askPermissions() {
         reqPermissionLauncher.launch(PERMISSIONS)
+    }
+
+    fun findRoute(findFirst: Point?, destination: Point) {
+        if (userLoc == null) return
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+
+        Log.i("FindRoute", "User Loc: $userLoc")
+        thread(true,true) {
+            drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_01)
+            drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_02)
+            Log.i("FindRoute", "Dest: $destination")
+            var priority = 0
+            if (lbMapLayers?.currFloor != 8) {
+                priority = Property.Entry.value or Property.Entry.value
+            }
+            Log.i("FindRoute", "Priority: $priority")
+            val routes = navGraph.requestRoute(
+                userLoc!!,
+                destination,
+                priority,
+                findFirst
+            )
+            Log.i(TAG, "Routes size " + routes!!.size)
+            if (routes!!.isNotEmpty()) {
+                var c = 0
+                for (i in routes) {
+                    var id = GEO_SOURCE_ID_01
+                    if (c % 2 != 0) id = GEO_SOURCE_ID_02
+                    c++
+                    drawDirection(mapboxMap?.getStyle()!!, i, id)
+                }
+            }
+        }
     }
 }
