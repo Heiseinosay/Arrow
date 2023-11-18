@@ -1,8 +1,6 @@
 package com.example.arrow.utils
 
 import android.graphics.Color
-import java.lang.System.identityHashCode
-import java.util.Queue
 import android.util.Log
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.LineString
@@ -11,7 +9,6 @@ import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.LineLayer
 import com.mapbox.maps.extension.style.sources.addSource
-import com.mapbox.maps.extension.style.sources.customGeometrySource
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.getSourceAs
 
@@ -292,7 +289,6 @@ class NavigationGraph(base: Node) {
                     curr.neighbors[i].loc.latitude(),
                     curr.neighbors[i].loc.longitude()
                 )
-                // Log.i(TAG,"NewDistance: " + nDist)
 
                 if (priority != 0) {
                     if (cLoc == null && curr.neighbors[i].property and priority != 0 ) {
@@ -706,17 +702,17 @@ fun setupNavigationGraph(): NavigationGraph {
 
 fun initDirectionLayer(loadedStyle: Style) {
     loadedStyle.addSource(GeoJsonSource.Builder(GEO_SOURCE_ID_01).build())
-    loadedStyle.addLayer(
-        LineLayer(DIRECTION_LAYER_ID_01, GEO_SOURCE_ID_01)
-            .lineWidth(4.5)
-            .lineColor(Color.GREEN)
-    )
     loadedStyle.addSource(GeoJsonSource.Builder(GEO_SOURCE_ID_02).build())
     loadedStyle.addLayer(
         LineLayer(DIRECTION_LAYER_ID_02, GEO_SOURCE_ID_02)
             .lineWidth(3.5)
             .lineColor(Color.GRAY)
             .lineOpacity(.5)
+    )
+    loadedStyle.addLayer(
+        LineLayer(DIRECTION_LAYER_ID_01, GEO_SOURCE_ID_01)
+            .lineWidth(4.5)
+            .lineColor(Color.GREEN)
     )
 }
 
