@@ -76,8 +76,6 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListene
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
 
-
-
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var viewModel: ViewModel
