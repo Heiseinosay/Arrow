@@ -26,4 +26,9 @@
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
+
+    <style name="btn_empty" parent="Base.Theme.AppCompat">
+        <item name="colorPrimary">@color/medGrey</item>
+<!--        <item name="color">@color/red</item>-->
+    </style>
 </resources>

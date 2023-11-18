@@ -10,11 +10,15 @@ import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.content.IntentSender
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -45,6 +49,7 @@ import com.google.gson.JsonObject
 
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
@@ -87,12 +92,17 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
+import android.provider.Settings
+import androidx.appcompat.app.AlertDialog
 
 import com.huawei.hms.panorama.Panorama
 import com.huawei.hms.panorama.PanoramaInterface
 import com.huawei.hms.support.api.client.ResultCallback
-
-
+import com.mapbox.android.core.location.LocationEngineCallback
+import com.mapbox.android.core.location.LocationEngineProvider
+import com.mapbox.android.core.location.LocationEngineRequest
+import com.mapbox.android.core.location.LocationEngineResult
+import java.lang.Exception
 
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
@@ -108,6 +118,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private lateinit var fragmentManager: FragmentManager
     private var startValue:Float = 0.0f
     private var searchValue:String = ""
+    private val REQUEST_CHECK_SETTINGS = 123
 
     // FRAGMENT VALUE PASS
     private val fragment: ExploreFragment by lazy {
@@ -143,7 +154,12 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
 
-
+        // USER LOCATION FOCUS
+        val focusLocation = findViewById<FloatingActionButton>(R.id.focusLocation)
+        focusLocation.setOnClickListener {
+            Toast.makeText(this, "Working", Toast.LENGTH_SHORT).show()
+            initLocationComponent()
+        }
 
         // SET STATUS BAR TO TRANSPARENT
         // window.statusBarColor = resources.getColor(android.R.color.transparent)
@@ -617,6 +633,80 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         locationComponentPlugin?.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
     }
 
+    // REQUEST LOCATION TO TURN ON
+    private fun checkLocationEnabled() {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as
+
+                LocationManager
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            val alertDialog = AlertDialog.Builder(this)
+                .setTitle("Location is disabled")
+                .setMessage("Please enable location to use this feature.")
+                .setPositiveButton("Open Settings") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+                .setNegativeButton("Cancel") { _, _ ->
+                    // Do nothing
+                }
+                .create()
+            alertDialog.show()
+        } else {
+            requestSingleLocationUpdate()
+        }
+    }
+
+    // GET USER CURRENT LOCATION
+    private var locationCallback: LocationEngineCallback<LocationEngineResult>? = null
+    private fun requestSingleLocationUpdate() {
+        var latitude:Double = 0.000
+        var longitude: Double = 0.000
+        if (locationCallback == null) {
+            locationCallback = object : LocationEngineCallback<LocationEngineResult> {
+                override fun onSuccess(result: LocationEngineResult?) {
+                    val location = result?.lastLocation
+                    location?.let {
+                        latitude = it.latitude
+                        longitude = it.longitude
+                        // Toast.makeText(applicationContext, "Current Location: Lat $latitude, Lng $longitude", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(exception: Exception) {
+                    // Handle failure if needed
+                }
+            }
+        }
+
+        val camera = CameraOptions.Builder()
+            .center(Point.fromLngLat(longitude,latitude))
+            .zoom(22.0)
+            .bearing(0.0)
+            .build()
+        val animationOptions = MapAnimationOptions.mapAnimationOptions {
+            duration(3000) // Duration in milliseconds for the animation
+        }
+        mapboxMap?.flyTo(camera, animationOptions)
+
+        val request = LocationEngineRequest.Builder(1000L)
+            .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+            .build()
+
+        val locationEngine = LocationEngineProvider.getBestLocationEngine(this)
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        locationEngine.requestLocationUpdates(request, locationCallback!!, mainLooper)
+        locationEngine.getLastLocation(locationCallback!!)
+    }
+
 
     private fun addAnnotationToMap(longitude: Double, latitude: Double) {
         bitmapFromDrawableRes(
@@ -758,7 +848,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     }
 
     private fun layerButtonListener() {
-
         var streetViewClicked = false
         val focusLocation = findViewById<FloatingActionButton>(R.id.focusLocation)
         val layerButton = findViewById<FloatingActionButton>(R.id.layerButton)
@@ -768,8 +857,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         val streetViewText = findViewById<TextView>(R.id.streetViewText)
         val birdsViewText = findViewById<TextView>(R.id.birdsViewText)
 
-        focusLocation.setOnClickListener {
-        }
         layerButton.setOnClickListener{
             setButton(clicked, streetView)
             setButton(clicked, streetViewText)
@@ -779,6 +866,12 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
             clicked = !clicked
         }
+
+        focusLocation.setOnClickListener {
+            // Toast.makeText(this, "working", Toast.LENGTH_SHORT).show()
+            checkLocationEnabled()
+        }
+
         streetView.setOnClickListener{
             streetViewClicked = if(!streetViewClicked){
                 explorationView()
