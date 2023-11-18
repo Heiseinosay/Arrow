@@ -17,129 +17,54 @@
         tools:layout_editor_absoluteY="136dp">
     </com.mapbox.maps.MapView>
 
-    <!--Focus Location-->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/focusLocation"
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="180dp"
         android:layout_marginTop="8dp"
         android:backgroundTint="@color/lightGrey"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:shapeAppearanceOverlay="@style/CircularShape"
-        app:srcCompat="@drawable/ic_focus_location"
-        android:contentDescription="Focus to present location" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/layerButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:backgroundTint="@color/lightGrey"
-        android:clickable="true"
-        android:contentDescription="TODO"
-        android:focusable="true"
-        app:layout_constraintBottom_toTopOf="@+id/focusLocation"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:shapeAppearanceOverlay="@style/CircularShape"
-        app:srcCompat="@drawable/ic_layer_view" />
-
-    <!--Exploration View-->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/streetView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:backgroundTint="@color/lightGrey"
-        android:clickable="true"
-        android:contentDescription="Exploration View"
-        android:focusable="true"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/birdsView"
-        app:layout_constraintEnd_toEndOf="@+id/birdsView"
-        app:layout_constraintStart_toStartOf="@+id/birdsView"
-        app:shapeAppearanceOverlay="@style/CircularShape"
-        app:srcCompat="@drawable/street_view" />
-
-    <TextView
-        android:id="@+id/streetViewText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="4dp"
-        android:text="Exploration View"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/streetView"
-        app:layout_constraintEnd_toStartOf="@+id/streetView"
-        app:layout_constraintTop_toTopOf="@+id/streetView" />
-
-    <!--AR View-->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/arView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:backgroundTint="@color/lightGrey"
-        android:clickable="true"
-        android:contentDescription="Augmented Reality View"
-        android:focusable="true"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/streetView"
-        app:layout_constraintEnd_toEndOf="@+id/streetView"
-        app:layout_constraintStart_toStartOf="@+id/streetView"
-        app:shapeAppearanceOverlay="@style/CircularShape"
-        app:srcCompat="@drawable/street_view" />
-
-    <TextView
-        android:id="@+id/arViewText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="4dp"
-        android:text="AR View"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/arView"
-        app:layout_constraintEnd_toStartOf="@+id/arView"
-        app:layout_constraintTop_toTopOf="@+id/arView" />
-
-    <!--Bird's Eye View-->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/birdsView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:backgroundTint="@color/lightGrey"
-        android:clickable="true"
-        android:contentDescription="Bird's Eye View"
-        android:focusable="true"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/layerButton"
-        app:layout_constraintEnd_toEndOf="@+id/layerButton"
-        app:layout_constraintStart_toStartOf="@+id/layerButton"
-        app:shapeAppearanceOverlay="@style/CircularShape"
-        app:srcCompat="@drawable/street_view" />
-
-    <TextView
-        android:id="@+id/birdsViewText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="4dp"
-        android:text="Bird's Eye View"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/birdsView"
-        app:layout_constraintEnd_toStartOf="@+id/birdsView"
-        app:layout_constraintTop_toTopOf="@+id/birdsView" />
-
+        android:layout_marginBottom="170dp">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_height="match_parent"
+            android:layout_width="match_parent">
+        <!--Focus Location-->
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/focusLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/lightGrey"
+                android:clickable="true"
+                android:layout_margin="8dp"
+                app:elevation="0dp"
+                android:contentDescription="Focus to present location"
+                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:shapeAppearanceOverlay="@style/CircularShape"
+                app:srcCompat="@drawable/ic_focus_location" />
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/layerButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/lightGrey"
+                android:clickable="true"
+                android:layout_margin="8dp"
+                app:elevation="0dp"
+                android:contentDescription="TODO"
+                android:focusable="true"
+                app:layout_constraintBottom_toTopOf="@+id/focusLocation"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:shapeAppearanceOverlay="@style/CircularShape"
+                app:srcCompat="@drawable/ic_panoramic_view" />
+          
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
@@ -490,7 +415,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:visibility="visible">
-
                     <ImageView
                         android:id="@+id/imageView"
                         android:layout_width="70dp"
