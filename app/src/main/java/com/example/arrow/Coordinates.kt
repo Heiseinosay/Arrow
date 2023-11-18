@@ -66,5 +66,5 @@ object Coordinates {
         Point.fromLngLat( 120.9894193607626, 14.602651802014375),
         Point.fromLngLat( 120.98947443169364, 14.602628693060247),
         Point.fromLngLat( 120.98953381196112, 14.602750485326764),
-        )
+    )
 }
