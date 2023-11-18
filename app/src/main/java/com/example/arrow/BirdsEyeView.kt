@@ -9,12 +9,23 @@ import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.content.IntentSender
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
+
+import android.util.Log
+
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
+
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.GONE
@@ -33,6 +44,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
@@ -60,9 +72,14 @@ import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
 import com.mapbox.maps.extension.style.expressions.generated.Expression
 import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
+
+import com.mapbox.maps.extension.style.expressions.generated.Expression
+import com.mapbox.maps.plugin.LocationPuck2D
+
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
@@ -75,6 +92,21 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+
+import com.mapbox.maps.plugin.animation.MapAnimationOptions
+import com.mapbox.maps.plugin.animation.flyTo
+import android.provider.Settings
+import androidx.appcompat.app.AlertDialog
+
+import com.huawei.hms.panorama.Panorama
+import com.huawei.hms.panorama.PanoramaInterface
+import com.huawei.hms.support.api.client.ResultCallback
+import com.mapbox.android.core.location.LocationEngineCallback
+import com.mapbox.android.core.location.LocationEngineProvider
+import com.mapbox.android.core.location.LocationEngineRequest
+import com.mapbox.android.core.location.LocationEngineResult
+import java.lang.Exception
+
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
@@ -89,6 +121,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private lateinit var fragmentManager: FragmentManager
     private var startValue:Float = 0.0f
     private var searchValue:String = ""
+    private val REQUEST_CHECK_SETTINGS = 123
 
     // FRAGMENT VALUE PASS
     private val fragment: ExploreFragment by lazy {
@@ -120,8 +153,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
 
-
-
         // SET STATUS BAR TO TRANSPARENT
         // window.statusBarColor = resources.getColor(android.R.color.transparent)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -150,7 +181,12 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
         btnTest.setOnClickListener {
             // PANORAMA TEST HERE
-            Toast.makeText(this, "Panorama test", Toast.LENGTH_SHORT).show()
+           // Toast.makeText(this, "Panorama test", Toast.LENGTH_SHORT).show()
+            val uri = Uri.parse("android.resource://" + packageName + "/" + R.drawable.imagetest3)
+            Panorama.getInstance()
+                .loadImageInfo(this, uri, PanoramaInterface.IMAGE_TYPE_RING)
+                .setResultCallback(ResultCallbackImpl())
+
         }
 
 
@@ -589,6 +625,80 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         locationComponentPlugin?.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
     }
 
+    // REQUEST LOCATION TO TURN ON
+    private fun checkLocationEnabled() {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as
+
+                LocationManager
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            val alertDialog = AlertDialog.Builder(this)
+                .setTitle("Location is disabled")
+                .setMessage("Please enable location to use this feature.")
+                .setPositiveButton("Open Settings") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+                .setNegativeButton("Cancel") { _, _ ->
+                    // Do nothing
+                }
+                .create()
+            alertDialog.show()
+        } else {
+            requestSingleLocationUpdate()
+        }
+    }
+
+    // GET USER CURRENT LOCATION
+    private var locationCallback: LocationEngineCallback<LocationEngineResult>? = null
+    private fun requestSingleLocationUpdate() {
+        var latitude:Double = 0.000
+        var longitude: Double = 0.000
+        if (locationCallback == null) {
+            locationCallback = object : LocationEngineCallback<LocationEngineResult> {
+                override fun onSuccess(result: LocationEngineResult?) {
+                    val location = result?.lastLocation
+                    location?.let {
+                        latitude = it.latitude
+                        longitude = it.longitude
+                        // Toast.makeText(applicationContext, "Current Location: Lat $latitude, Lng $longitude", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(exception: Exception) {
+                    // Handle failure if needed
+                }
+            }
+        }
+
+        val camera = CameraOptions.Builder()
+            .center(Point.fromLngLat(longitude,latitude))
+            .zoom(22.0)
+            .bearing(0.0)
+            .build()
+        val animationOptions = MapAnimationOptions.mapAnimationOptions {
+            duration(3000) // Duration in milliseconds for the animation
+        }
+        mapboxMap?.flyTo(camera, animationOptions)
+
+        val request = LocationEngineRequest.Builder(1000L)
+            .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+            .build()
+
+        val locationEngine = LocationEngineProvider.getBestLocationEngine(this)
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        locationEngine.requestLocationUpdates(request, locationCallback!!, mainLooper)
+        locationEngine.getLastLocation(locationCallback!!)
+    }
+
 
     private fun addAnnotationToMap(longitude: Double, latitude: Double) {
         bitmapFromDrawableRes(
@@ -732,10 +842,13 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private fun layerButtonListener() {
         val focusLocation = findViewById<FloatingActionButton>(R.id.focusLocation)
         val layerButton = findViewById<FloatingActionButton>(R.id.layerButton)
-
-        focusLocation.setOnClickListener {
-
+        
+         focusLocation.setOnClickListener {
+            // Toast.makeText(this, "working", Toast.LENGTH_SHORT).show()
+            checkLocationEnabled()
         }
+
+
         layerButton.setOnClickListener{
             clicked = if(!clicked){
                 Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
@@ -774,5 +887,26 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             true
         }
         polylineAnnotationManager?.addClickListener(clickListener)
+    }
+
+    // PANORAMA
+    private inner class ResultCallbackImpl : ResultCallback<PanoramaInterface.ImageInfoResult> {
+        override fun onResult(panoramaResult: PanoramaInterface.ImageInfoResult) {
+            if (panoramaResult == null) {
+                Log.i("Mytag", "panoramaResult is null")
+                return
+            }
+
+            if (panoramaResult.status.isSuccess) {
+                val intent = panoramaResult.imageDisplayIntent
+                if (intent != null) {
+                    startActivity(intent)
+                } else {
+                    Log.i("Mytag", "unknown error, view intent is null")
+                }
+            } else {
+                Log.i("Mytag", "error status : ${panoramaResult.status}")
+            }
+        }
     }
 }
