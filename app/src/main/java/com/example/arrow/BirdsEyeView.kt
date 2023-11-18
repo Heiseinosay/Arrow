@@ -1,6 +1,5 @@
 package com.example.arrow
 
-import com.example.arrow.utils.*
 //import android.preference.PreferenceManager
 
 
@@ -16,10 +15,6 @@ import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.GONE
@@ -29,7 +24,6 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ScrollView
-
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -37,10 +31,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.gson.JsonObject
-
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -48,14 +38,16 @@ import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
+import com.example.arrow.utils.*
 import com.example.sqlitedatabase.DataBaseHandler
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-
+import com.google.gson.JsonObject
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraBoundsOptions
@@ -65,11 +57,17 @@ import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
-
+import com.mapbox.maps.extension.style.expressions.generated.Expression
 import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
+<<<<<<< Updated upstream
 import com.mapbox.maps.extension.style.expressions.generated.Expression
 
+=======
+import com.mapbox.maps.plugin.LocationPuck2D
+import com.mapbox.maps.plugin.animation.MapAnimationOptions
+import com.mapbox.maps.plugin.animation.flyTo
+>>>>>>> Stashed changes
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
@@ -82,8 +80,6 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
-import com.mapbox.maps.plugin.animation.MapAnimationOptions
-import com.mapbox.maps.plugin.animation.flyTo
 
 
 
@@ -109,10 +105,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         searchValue = value
         searchAnimate(searchValue)
     }
-
-    //Layer Button Animation
-    private val fromTop: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.from_top_layer)}
-    private val toTop: Animation by lazy { AnimationUtils.loadAnimation(this, R.anim.to_top_layer)}
 
     var polylineAnnotationManager: PolylineAnnotationManager? = null
     var clicked = false
@@ -745,29 +737,15 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     }
 
     private fun layerButtonListener() {
-
-        var streetViewClicked = false
         val focusLocation = findViewById<FloatingActionButton>(R.id.focusLocation)
         val layerButton = findViewById<FloatingActionButton>(R.id.layerButton)
-        val streetView = findViewById<FloatingActionButton>(R.id.streetView)
-        val birdsView = findViewById<FloatingActionButton>(R.id.birdsView)
-
-        val streetViewText = findViewById<TextView>(R.id.streetViewText)
-        val birdsViewText = findViewById<TextView>(R.id.birdsViewText)
 
         focusLocation.setOnClickListener {
+
         }
         layerButton.setOnClickListener{
-            setButton(clicked, streetView)
-            setButton(clicked, streetViewText)
-
-            setButton(clicked, birdsView)
-            setButton(clicked, birdsViewText)
-
-            clicked = !clicked
-        }
-        streetView.setOnClickListener{
-            streetViewClicked = if(!streetViewClicked){
+            clicked = if(!clicked){
+                Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
                 explorationView()
                 true
             } else {
@@ -775,24 +753,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 false
             }
         }
-        birdsView.setOnClickListener {
-
-        }
     }
-
-    private fun setButton(clicked: Boolean, FAB: View){
-        if (!clicked){
-            FAB.visibility = View.VISIBLE
-            FAB.startAnimation(fromTop)
-            FAB.isClickable = true
-
-        } else{
-            FAB.visibility = View.INVISIBLE
-            FAB.startAnimation(toTop)
-            FAB.isClickable = false
-        }
-    }
-
 
     private fun explorationView(){
         polylineAnnotationManager = mapView?.annotations?.createPolylineAnnotationManager()
@@ -820,18 +781,5 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             true
         }
         polylineAnnotationManager?.addClickListener(clickListener)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        val streetView = findViewById<FloatingActionButton>(R.id.streetView)
-        val birdsView = findViewById<FloatingActionButton>(R.id.birdsView)
-        if(clicked){
-            streetView.startAnimation(fromTop)
-            birdsView.startAnimation(fromTop)
-        } else{
-            streetView.startAnimation(toTop)
-            birdsView.startAnimation(toTop)
-        }
     }
 }

@@ -17,11 +17,10 @@
         tools:layout_editor_absoluteY="136dp">
     </com.mapbox.maps.MapView>
 
-    <!--Focus Location-->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/focusLocation"
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+<<<<<<< Updated upstream
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginEnd="8dp"
@@ -30,12 +29,31 @@
         android:backgroundTint="@color/lightGrey"
         android:clickable="true"
         android:focusable="true"
+=======
+>>>>>>> Stashed changes
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:shapeAppearanceOverlay="@style/CircularShape"
-        app:srcCompat="@drawable/ic_focus_location"
-        android:contentDescription="Focus to present location" />
+        android:layout_marginBottom="170dp">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_height="match_parent"
+            android:layout_width="match_parent">
+        <!--Focus Location-->
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/focusLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/lightGrey"
+                android:clickable="true"
+                android:layout_margin="8dp"
+                app:elevation="0dp"
+                android:contentDescription="Focus to present location"
+                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:shapeAppearanceOverlay="@style/CircularShape"
+                app:srcCompat="@drawable/ic_focus_location" />
 
+<<<<<<< Updated upstream
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/layerButton"
         android:layout_width="wrap_content"
@@ -141,7 +159,25 @@
         app:layout_constraintTop_toTopOf="@+id/birdsView" />
         app:mapbox_cameraZoom="18">
     </com.mapbox.maps.MapView>
+=======
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/layerButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/lightGrey"
+                android:clickable="true"
+                android:layout_margin="8dp"
+                app:elevation="0dp"
+                android:contentDescription="TODO"
+                android:focusable="true"
+                app:layout_constraintBottom_toTopOf="@+id/focusLocation"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:shapeAppearanceOverlay="@style/CircularShape"
+                app:srcCompat="@drawable/ic_panoramic_view" />
+>>>>>>> Stashed changes
 
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
@@ -492,7 +528,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:visibility="visible">
-
                     <ImageView
                         android:id="@+id/imageView"
                         android:layout_width="70dp"
