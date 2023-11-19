@@ -1,7 +1,6 @@
 package com.example.arrow
 
 import com.example.arrow.utils.*
-//import android.preference.PreferenceManager
 
 import android.Manifest
 import android.animation.AnimatorSet
@@ -9,6 +8,7 @@ import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Typeface
@@ -66,6 +66,10 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
+import com.mapbox.maps.plugin.attribution.attribution
+import com.mapbox.maps.plugin.compass.compass
+import com.mapbox.maps.plugin.logo.logo
+import com.mapbox.maps.plugin.scalebar.scalebar
 
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
@@ -345,7 +349,25 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         mapView = findViewById(R.id.mapView)
         mapboxMap = mapView?.getMapboxMap()
 
+        modBuiltinUI()
         onMapReady()
+    }
+
+    private fun modBuiltinUI() {
+        val height = Resources.getSystem().displayMetrics.heightPixels
+        val percentage = 0.025f
+        mapView?.logo?.updateSettings {
+            enabled = false
+        }
+        mapView?.attribution?.updateSettings {
+            enabled = false
+        }
+        mapView?.scalebar?.updateSettings {
+            marginTop = (height*percentage).toFloat()
+        }
+        mapView?.compass?.updateSettings {
+            marginTop = (height*percentage).toFloat()
+        }
     }
 
     private fun onMapReady() {
