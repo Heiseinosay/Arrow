@@ -17,13 +17,17 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.view.children
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.sqlitedatabase.DataBaseHandler
 import com.mapbox.geojson.Point
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment_directions) {
+class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.layout.fragment_directions) {
+    data class PointWrapper(var point: Point? = null)
+
     private lateinit var etInputs: List<EditText>
-//    private lateinit var etCurrLocSearchbar: EditText
-//    private lateinit var etDestinationSearchBar: EditText
     private lateinit var svDSLinearLayout: LinearLayout
 
     private lateinit var dbHelper:  DataBaseHandler
@@ -32,6 +36,8 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
     private lateinit var vSuggestLine: View
 
     val YOUR_LOCATION = "Your Location"
+    val CURR_LOC = "CurrLoc"
+    val DEST_LOC = "DestLoc"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -40,8 +46,6 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
             view.findViewById(R.id.etCurrLocSearchbar),
             view.findViewById(R.id.etDestinationSearchbar)
         )
-//        etCurrLocSearchbar = view.findViewById(R.id.etCurrLocSearchbar)
-//        etDestinationSearchBar = view.findViewById(R.id.etDestinationSearchbar)
 
         val btSwitchLoc: Button = view.findViewById(R.id.btSwitchLoc)
         val svDirectionSuggestions: ScrollView = view.findViewById(R.id.svDirectionSuggestions)
@@ -74,7 +78,6 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
             }
             ev.setOnEditorActionListener { v, actionId, event ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    Log.i("DirectionFragmentGo", "Go")
                     findPath()
                 }
                 false
@@ -83,12 +86,27 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         setListeners(0)
         setListeners(1)
 
+        Log.i("DirectionFragmentBundle", "$arguments")
+        if (arguments != null) {
+            etInputs[0].setText(requireArguments().getString(CURR_LOC,""))
+            etInputs[1].setText(requireArguments().getString(DEST_LOC,""))
+            svDSLinearLayout.removeAllViews()
+        }
+
         btSwitchLoc.setOnClickListener{
             val t = etInputs[0].text
             etInputs[0].text = etInputs[1].text
             etInputs[1].text = t
             svDSLinearLayout.removeAllViews()
             findPath()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (arguments != null) {
+            requireArguments().putString(CURR_LOC,etInputs[0].text.toString())
+            requireArguments().putString(DEST_LOC,etInputs[1].text.toString())
         }
     }
 
@@ -111,10 +129,6 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
             return ret
         }
 
-        if (sbCurrLoc == YOUR_LOCATION && sbDestLoc == YOUR_LOCATION) {
-            db.close()
-            return
-        }
         if (sbCurrLoc != YOUR_LOCATION) {
             Log.i("DestinationFragmentFindPath", "sbCurrLoc: $sbCurrLoc")
                 val ret = getStringFrom("SELECT * FROM MapIndex WHERE RoomID LIKE '$sbCurrLoc'")
@@ -125,43 +139,43 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
             findFirst = toROOMSPoint(ret)
         }
         else {
-            context.userLoc?.let {
+            val wpUserLoc = PointWrapper()
+            context.getUserLoc(wpUserLoc)
+            wpUserLoc.point?.let {
                 findFirst = null
             }
         }
-        if (sbDestLoc != YOUR_LOCATION) {
-            Log.i("DestinationFragmentFindPath", "sbDestLoc: $sbDestLoc")
-                val ret = getStringFrom("SELECT * FROM MapIndex WHERE RoomID LIKE '$sbDestLoc'")
-                if (ret.isEmpty()) {
-                    db.close()
-                    return
-                }
-            destination = toROOMSPoint(ret)
+        Log.i("DestinationFragmentFindPath", "sbDestLoc: $sbDestLoc")
+        val ret = getStringFrom("SELECT * FROM MapIndex WHERE RoomID LIKE '$sbDestLoc'")
+        if (ret.isEmpty()) {
+            db.close()
+            return
         }
-        else {
-            context.userLoc?.let {
-                destination = it
-            }
-        }
+        destination = toROOMSPoint(ret)
 
         db.close()
         if (destination == null) return
-        Log.i("DirectionsFragment", "" + destination)
+        Log.i("DirectionsFragmentFindPath", "$findFirst $destination")
 
-        context.findRoute(findFirst, destination!!)
+        context.updateDirFragBundle(CURR_LOC, sbCurrLoc)
+        context.updateDirFragBundle(DEST_LOC, sbDestLoc)
+        context.findRoute(findFirst, destination)
     }
 
     private fun toROOMSPoint(s: String): Point? {
         val indexes = s.split(',')
         Log.i("DirectionsFragmentIndexes", "" + indexes)
-        val userLoc = context.userLoc
-        if (userLoc == null) {
+        val wpUserLoc = PointWrapper()
+        context.getUserLoc(wpUserLoc)
+        Log.i("GETUSERLOC", "$wpUserLoc")
+        if (wpUserLoc.point == null) {
             Log.w(
                 "DirectionsFragment",
                 "User Location is Null"
             )
             return null
         }
+        val userLoc = wpUserLoc.point!!
         var closest: Point? = null
         var closestDist = 1000.0
         for (i in indexes) {
@@ -190,6 +204,7 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
             tvDirectionSuggestion.visibility = View.INVISIBLE
             vSuggestLine.visibility = View.INVISIBLE
         }
+        svDSLinearLayout.removeAllViews()
     }
 
     fun suggestion(db: SQLiteDatabase,s: Editable?, evId: Int) {
@@ -217,16 +232,13 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         }
         svDSLinearLayout.removeAllViews()
 
-        if (etInputs[0].text.toString() != YOUR_LOCATION &&
-            etInputs[1].text.toString() != YOUR_LOCATION)  {
+        if (etInputs[0].text.toString() != YOUR_LOCATION && evId == 0)  {
             val (suggestionLayout, tvSug) = createSuggestion(YOUR_LOCATION, R.drawable.my_location_24px)
             tvSug.setOnClickListener {
                 Log.i("DirectionsFragment", "" + it)
                 etInputs[evId].setText(YOUR_LOCATION)
                 Log.i("DirectionsFragment", "ID: " + evId)
-                context.userLoc?.let { userLoc ->
-                    findPath()
-                }
+                findPath()
             }
             svDSLinearLayout.addView(suggestionLayout)
         }

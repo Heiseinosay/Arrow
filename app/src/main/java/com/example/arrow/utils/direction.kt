@@ -382,11 +382,9 @@ class NavigationGraph(base: Node) {
                 start = nStart
         }
         else {
-            searchFor(customStart)?.let {
-                start = it
-            } ?: run{
-                return requestRoute(origin, destination, priority)
-            }
+            val nStart = searchFor(customStart)
+            if (nStart != null)
+                start = nStart
         }
 
         val routes: MutableList<Pair< Double,List<Node> >> = mutableListOf()

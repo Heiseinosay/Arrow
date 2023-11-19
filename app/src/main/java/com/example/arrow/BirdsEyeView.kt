@@ -39,6 +39,7 @@ import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.sqlitedatabase.DataBaseHandler
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.auth.FirebaseAuth
@@ -67,6 +68,9 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListen
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.concurrent.thread
 
 
@@ -83,8 +87,14 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private lateinit var fragmentManager: FragmentManager
     private var startValue:Float = 0.0f
     private var searchValue:String = ""
-    public var userLoc: Point? = null
+    private var userLoc: Point? = null
     lateinit var navGraph: NavigationGraph
+
+    val destFragBundle = Bundle()
+    var isPathingEnabled = false
+    var cDestination: Point? = null
+    // avoid data race on thread
+    val mutex = Mutex()
 
     // FRAGMENT VALUE PASS
     private val fragment: ExploreFragment by lazy {
@@ -320,7 +330,9 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
         cvNavDirection.setOnClickListener{
-            changeFragment(DirectionsFragment(this), ivDirection, tvDirection,
+            val dirFrag = DirectionsFragment(this, mutex)
+            dirFrag.arguments = destFragBundle
+            changeFragment(dirFrag, ivDirection, tvDirection,
                 listOf(ivProfile, ivExplore), listOf(tvProfile, tvExplore))
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
@@ -519,9 +531,20 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     }
 
     private val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+        val prevLoc = userLoc
         userLoc = it
         mapboxMap?.setCamera(CameraOptions.Builder().center(it).build())
         mapView?.gestures?.focalPoint = mapboxMap?.pixelForCoordinate(it)
+        lifecycleScope.launch {
+            mutex.withLock {
+                if (isPathingEnabled && cDestination != null) {
+                    Log.i("PrevPathingIndicatorPositionChanged", "$isPathingEnabled ${cDestination?.longitude()} ${cDestination?.latitude()}")
+                    if (prevLoc != null && distanceOf(it, prevLoc) > 0.1) {
+                        findRoute(null, cDestination!!)
+                    }
+                }
+            }
+        }
     }
 
     private val onMoveListener = object : OnMoveListener {
@@ -718,35 +741,60 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         reqPermissionLauncher.launch(PERMISSIONS)
     }
 
+    fun updateDirFragBundle(key: String, value: String) {
+        destFragBundle.putString(key, value)
+    }
     fun findRoute(findFirst: Point?, destination: Point) {
         if (userLoc == null) return
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
-        Log.i("FindRoute", "User Loc: $userLoc")
         thread(true,true) {
-            drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_01)
-            drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_02)
-            Log.i("FindRoute", "Dest: $destination")
-            var priority = 0
-            if (lbMapLayers?.currFloor != 8) {
-                priority = Property.Entry.value or Property.Entry.value
-            }
-            Log.i("FindRoute", "Priority: $priority")
-            val routes = navGraph.requestRoute(
-                userLoc!!,
-                destination,
-                priority,
-                findFirst
-            )
-            Log.i(TAG, "Routes size " + routes!!.size)
-            if (routes!!.isNotEmpty()) {
-                var c = 0
-                for (i in routes) {
-                    var id = GEO_SOURCE_ID_01
-                    if (c % 2 != 0) id = GEO_SOURCE_ID_02
-                    c++
-                    drawDirection(mapboxMap?.getStyle()!!, i, id)
+            lifecycleScope.launch {
+                mutex.withLock {
+                    drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_01)
+                    drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_02)
+                    if (distanceOf(userLoc!!, destination) <= 0.1) {
+                        isPathingEnabled = false
+                        cDestination = null
+                        return@launch
+                    }
+                    Log.i("FindRoute", "Dest: $destination")
+                    var priority = 0
+                    if (lbMapLayers?.currFloor != 8) {
+                        priority = Property.Entry.value or Property.Exit.value
+                    }
+                    Log.i("FindRoute", "Priority: $priority")
+                    Log.i("FindRouteParams", "Params: ${userLoc!!.longitude()} ${userLoc!!.latitude()}\n${destination.longitude()} ${destination.latitude()}")
+                    Log.i("FindRouteParams", "${priority}  ${findFirst?.longitude()} ${findFirst?.latitude()}")
+                    val routes = navGraph.requestRoute(
+                        userLoc!!,
+                        destination,
+                        priority,
+                        findFirst
+                    )
+                    Log.i(TAG, "Routes size " + routes.size)
+                    if (routes.isNotEmpty()) {
+                        var c = 0
+                        for (i in routes) {
+                            var id = GEO_SOURCE_ID_01
+                            if (c % 2 != 0) id = GEO_SOURCE_ID_02
+                            c++
+                            drawDirection(mapboxMap?.getStyle()!!, i, id)
+                        }
+
+                        Log.i("PrevPathingFindRoute", "$isPathingEnabled ${cDestination?.longitude()} ${cDestination?.latitude()}")
+                        isPathingEnabled = true
+                        cDestination = destination
+                    }
                 }
+            }
+        }
+    }
+    fun getUserLoc(p: DirectionsFragment.PointWrapper) {
+        lifecycleScope.launch {
+            mutex.withLock {
+                Log.i("GETUSERLOC", "point: $userLoc")
+                p.point = userLoc
             }
         }
     }
