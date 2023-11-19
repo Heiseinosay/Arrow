@@ -9,11 +9,14 @@ import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
@@ -34,6 +37,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
@@ -72,7 +76,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.concurrent.thread
-
+import android.provider.Settings
+import androidx.appcompat.app.AlertDialog
+import com.mapbox.android.core.location.LocationEngineCallback
+import com.mapbox.android.core.location.LocationEngineProvider
+import com.mapbox.android.core.location.LocationEngineRequest
+import com.mapbox.android.core.location.LocationEngineResult
+import java.lang.Exception
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
@@ -87,7 +97,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private lateinit var fragmentManager: FragmentManager
     private var startValue:Float = 0.0f
     private var searchValue:String = ""
-    private var userLoc: Point? = null
     lateinit var navGraph: NavigationGraph
 
     val destFragBundle = Bundle()
@@ -120,8 +129,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
-
-
 
         // SET STATUS BAR TO TRANSPARENT
         // window.statusBarColor = resources.getColor(android.R.color.transparent)
@@ -352,9 +359,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 if (allPermissionsGranted) {
                     Toast.makeText( applicationContext, "Permission Granted", Toast.LENGTH_SHORT).show()
                 }
-                else {
-                    Toast.makeText( applicationContext, "One of Permission is Denied", Toast.LENGTH_SHORT).show()
-                }
             }
         reqPermissionLauncher.launch(PERMISSIONS)
 
@@ -530,21 +534,22 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         mapboxMap?.setCamera(CameraOptions.Builder().bearing(it).build())
     }
 
+    private var prevUserLocation: Point? = null
+
     private val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
-        val prevLoc = userLoc
-        userLoc = it
         mapboxMap?.setCamera(CameraOptions.Builder().center(it).build())
         mapView?.gestures?.focalPoint = mapboxMap?.pixelForCoordinate(it)
         lifecycleScope.launch {
             mutex.withLock {
                 if (isPathingEnabled && cDestination != null) {
                     Log.i("PrevPathingIndicatorPositionChanged", "$isPathingEnabled ${cDestination?.longitude()} ${cDestination?.latitude()}")
-                    if (prevLoc != null && distanceOf(it, prevLoc) > 0.1) {
+                    if (prevUserLocation != null && distanceOf(it, prevUserLocation!!) > 0.1) {
                         findRoute(null, cDestination!!)
                     }
                 }
             }
         }
+        prevUserLocation = it
     }
 
     private val onMoveListener = object : OnMoveListener {
@@ -603,9 +608,84 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         locationComponentPlugin?.addOnIndicatorBearingChangedListener(onIndicatorBearingChangedListener)
     }
 
+    // REQUEST LOCATION TO TURN ON
+    private fun checkLocationEnabled() {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as
+                LocationManager
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            val alertDialog = AlertDialog.Builder(this)
+                .setTitle("Location is disabled")
+                .setMessage("Please enable location to use this feature.")
+                .setPositiveButton("Open Settings") { _, _ ->
+                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+                .setNegativeButton("Cancel") { _, _ ->
+                    // Do nothing
+                }
+                .create()
+            alertDialog.show()
+        } else {
+            requestSingleLocationUpdate()
+        }
+    }
+
+    // GET USER CURRENT LOCATION
+    private var locationCallback: LocationEngineCallback<LocationEngineResult>? = null
+    private fun requestSingleLocationUpdate(): Point? {
+        var latitude:Double = 0.000
+        var longitude: Double = 0.000
+        if (locationCallback == null) {
+            locationCallback = object : LocationEngineCallback<LocationEngineResult> {
+                override fun onSuccess(result: LocationEngineResult?) {
+                    val location = result?.lastLocation
+                    location?.let {
+                        latitude = it.latitude
+                        longitude = it.longitude
+                        // Toast.makeText(applicationContext, "Current Location: Lat $latitude, Lng $longitude", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(exception: Exception) {
+                    // Handle failure if needed
+                }
+            }
+        }
+
+        val camera = CameraOptions.Builder()
+            .center(Point.fromLngLat(longitude,latitude))
+            .zoom(22.0)
+            .bearing(0.0)
+            .build()
+        val animationOptions = MapAnimationOptions.mapAnimationOptions {
+            duration(3000) // Duration in milliseconds for the animation
+        }
+        mapboxMap?.flyTo(camera, animationOptions)
+
+        val request = LocationEngineRequest.Builder(1000L)
+            .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+            .build()
+
+        val locationEngine = LocationEngineProvider.getBestLocationEngine(this)
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return null
+        }
+
+        locationEngine.requestLocationUpdates(request, locationCallback!!, mainLooper)
+        locationEngine.getLastLocation(locationCallback!!)
+        return Point.fromLngLat(longitude, latitude)
+    }
+
+
     private fun addAnnotationToMap(longitude: Double, latitude: Double) {
         bitmapFromDrawableRes(
-            this@BirdsEyeView,
+            this,
             R.drawable.arrowvector
         )?.let {
             val annotationApi = mapView?.annotations
@@ -621,6 +701,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =
         convertDrawableToBitmap(AppCompatResources.getDrawable(context, resourceId))
 
+    // Converting Drawable To Bitmap
     private fun convertDrawableToBitmap(sourceDrawable: Drawable?): Bitmap? {
         if (sourceDrawable == null) {
             return null
@@ -745,6 +826,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         destFragBundle.putString(key, value)
     }
     fun findRoute(findFirst: Point?, destination: Point) {
+        val userLoc = requestSingleLocationUpdate()
         if (userLoc == null) return
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
@@ -793,8 +875,8 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     fun getUserLoc(p: DirectionsFragment.PointWrapper) {
         lifecycleScope.launch {
             mutex.withLock {
-                Log.i("GETUSERLOC", "point: $userLoc")
-                p.point = userLoc
+                p.point = requestSingleLocationUpdate()
+                Log.i("GETUSERLOC", "point: ${p.point}")
             }
         }
     }
