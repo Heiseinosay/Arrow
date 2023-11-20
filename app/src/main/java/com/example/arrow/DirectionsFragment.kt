@@ -25,8 +25,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.layout.fragment_directions) {
-    data class PointWrapper(var point: Point? = null)
-
     private lateinit var etInputs: List<EditText>
     private lateinit var svDSLinearLayout: LinearLayout
 
@@ -139,9 +137,7 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
             findFirst = toROOMSPoint(ret)
         }
         else {
-            val wpUserLoc = PointWrapper()
-            context.getUserLoc(wpUserLoc)
-            wpUserLoc.point?.let {
+            context.requestSingleLocationUpdate().let {
                 findFirst = null
             }
         }
@@ -165,17 +161,14 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
     private fun toROOMSPoint(s: String): Point? {
         val indexes = s.split(',')
         Log.i("DirectionsFragmentIndexes", "" + indexes)
-        val wpUserLoc = PointWrapper()
-        context.getUserLoc(wpUserLoc)
-        Log.i("GETUSERLOC", "$wpUserLoc")
-        if (wpUserLoc.point == null) {
+        val userLoc = context.requestSingleLocationUpdate()
+        if (userLoc == null) {
             Log.w(
                 "DirectionsFragment",
                 "User Location is Null"
             )
             return null
         }
-        val userLoc = wpUserLoc.point!!
         var closest: Point? = null
         var closestDist = 1000.0
         for (i in indexes) {

@@ -631,7 +631,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
     // GET USER CURRENT LOCATION
     private var locationCallback: LocationEngineCallback<LocationEngineResult>? = null
-    private fun requestSingleLocationUpdate(): Point? {
+    fun requestSingleLocationUpdate(): Point? {
         var latitude:Double = 0.000
         var longitude: Double = 0.000
         if (locationCallback == null) {
@@ -831,52 +831,44 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
         thread(true,true) {
-            lifecycleScope.launch {
-                mutex.withLock {
-                    drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_01)
-                    drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_02)
-                    if (distanceOf(userLoc!!, destination) <= 0.1) {
-                        isPathingEnabled = false
-                        cDestination = null
-                        return@launch
-                    }
-                    Log.i("FindRoute", "Dest: $destination")
-                    var priority = 0
-                    if (lbMapLayers?.currFloor != 8) {
-                        priority = Property.Entry.value or Property.Exit.value
-                    }
-                    Log.i("FindRoute", "Priority: $priority")
-                    Log.i("FindRouteParams", "Params: ${userLoc!!.longitude()} ${userLoc!!.latitude()}\n${destination.longitude()} ${destination.latitude()}")
-                    Log.i("FindRouteParams", "${priority}  ${findFirst?.longitude()} ${findFirst?.latitude()}")
-                    val routes = navGraph.requestRoute(
-                        userLoc!!,
-                        destination,
-                        priority,
-                        findFirst
-                    )
-                    Log.i(TAG, "Routes size " + routes.size)
-                    if (routes.isNotEmpty()) {
-                        var c = 0
-                        for (i in routes) {
-                            var id = GEO_SOURCE_ID_01
-                            if (c % 2 != 0) id = GEO_SOURCE_ID_02
-                            c++
-                            drawDirection(mapboxMap?.getStyle()!!, i, id)
-                        }
+            drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_01)
+            drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_02)
+            if (distanceOf(userLoc!!, destination) <= 0.1) {
+                isPathingEnabled = false
+                cDestination = null
+                return@thread
+            }
+            Log.i("FindRoute", "Dest: $destination")
+            var priority = 0
+            if (lbMapLayers?.currFloor != 8) {
+                priority = Property.Entry.value or Property.Exit.value
+            }
+            Log.i("FindRoute", "Priority: $priority")
+            Log.i("FindRouteParams", "Params: ${userLoc!!.longitude()} ${userLoc!!.latitude()}\n${destination.longitude()} ${destination.latitude()}")
+            Log.i("FindRouteParams", "${priority}  ${findFirst?.longitude()} ${findFirst?.latitude()}")
+            val routes = navGraph.requestRoute(
+                userLoc!!,
+                destination,
+                priority,
+                findFirst
+            )
+            Log.i(TAG, "Routes size " + routes.size)
+            if (routes.isNotEmpty()) {
+                var c = 0
+                for (i in routes) {
+                    var id = GEO_SOURCE_ID_01
+                    if (c % 2 != 0) id = GEO_SOURCE_ID_02
+                    c++
+                    drawDirection(mapboxMap?.getStyle()!!, i, id)
+                }
 
+                lifecycleScope.launch {
+                    mutex.withLock {
                         Log.i("PrevPathingFindRoute", "$isPathingEnabled ${cDestination?.longitude()} ${cDestination?.latitude()}")
                         isPathingEnabled = true
                         cDestination = destination
                     }
                 }
-            }
-        }
-    }
-    fun getUserLoc(p: DirectionsFragment.PointWrapper) {
-        lifecycleScope.launch {
-            mutex.withLock {
-                p.point = requestSingleLocationUpdate()
-                Log.i("GETUSERLOC", "point: ${p.point}")
             }
         }
     }
