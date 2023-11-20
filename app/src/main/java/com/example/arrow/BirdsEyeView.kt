@@ -609,7 +609,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     }
 
     // REQUEST LOCATION TO TURN ON
-    private fun checkLocationEnabled() {
+    fun checkLocationEnabled(): Point? {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as
                 LocationManager
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -625,8 +625,9 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 .create()
             alertDialog.show()
         } else {
-            requestSingleLocationUpdate()
+            return requestSingleLocationUpdate()
         }
+        return null
     }
 
     // GET USER CURRENT LOCATION

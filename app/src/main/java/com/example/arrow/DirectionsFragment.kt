@@ -137,7 +137,7 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
             findFirst = toROOMSPoint(ret)
         }
         else {
-            context.requestSingleLocationUpdate().let {
+            context.checkLocationEnabled().let {
                 findFirst = null
             }
         }
@@ -161,7 +161,7 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
     private fun toROOMSPoint(s: String): Point? {
         val indexes = s.split(',')
         Log.i("DirectionsFragmentIndexes", "" + indexes)
-        val userLoc = context.requestSingleLocationUpdate()
+        val userLoc = context.checkLocationEnabled()
         if (userLoc == null) {
             Log.w(
                 "DirectionsFragment",
