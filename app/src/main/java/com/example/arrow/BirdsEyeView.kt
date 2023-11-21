@@ -10,7 +10,6 @@ import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -18,14 +17,12 @@ import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.LocationManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
-
+import android.provider.Settings
 import android.util.Log
-
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.GONE
@@ -40,6 +37,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.cardview.widget.CardView
@@ -59,7 +57,15 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.JsonObject
+import com.huawei.hms.panorama.Panorama
+import com.huawei.hms.panorama.PanoramaInterface
+import com.huawei.hms.support.api.client.ResultCallback
+import com.mapbox.android.core.location.LocationEngineCallback
+import com.mapbox.android.core.location.LocationEngineProvider
+import com.mapbox.android.core.location.LocationEngineRequest
+import com.mapbox.android.core.location.LocationEngineResult
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraBoundsOptions
@@ -72,9 +78,9 @@ import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
 import com.mapbox.maps.extension.style.expressions.generated.Expression
 import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
 import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
-
 import com.mapbox.maps.plugin.LocationPuck2D
-
+import com.mapbox.maps.plugin.animation.MapAnimationOptions
+import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
@@ -87,20 +93,7 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
-
-import com.mapbox.maps.plugin.animation.MapAnimationOptions
-import com.mapbox.maps.plugin.animation.flyTo
-import android.provider.Settings
-import androidx.appcompat.app.AlertDialog
-
-import com.huawei.hms.panorama.Panorama
-import com.huawei.hms.panorama.PanoramaInterface
-import com.huawei.hms.support.api.client.ResultCallback
-import com.mapbox.android.core.location.LocationEngineCallback
-import com.mapbox.android.core.location.LocationEngineProvider
-import com.mapbox.android.core.location.LocationEngineRequest
-import com.mapbox.android.core.location.LocationEngineResult
-import java.lang.Exception
+import java.io.File
 
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
@@ -117,6 +110,10 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private var startValue:Float = 0.0f
     private var searchValue:String = ""
     private val REQUEST_CHECK_SETTINGS = 123
+    private var currFloor = 1
+    var polylineAnnotationManager: PolylineAnnotationManager? = null
+    var polylineAnnotationManagerGastam: PolylineAnnotationManager? = null
+    var clicked = false
 
     // FRAGMENT VALUE PASS
     private val fragment: ExploreFragment by lazy {
@@ -126,9 +123,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         searchValue = value
         searchAnimate(searchValue)
     }
-
-    var polylineAnnotationManager: PolylineAnnotationManager? = null
-    var clicked = false
 
     val PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -237,6 +231,11 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                             )
                         )
                     )
+                }
+                currFloor = i+1
+                if (clicked){
+                    polylineAnnotationManager?.deleteAll()
+                    explorationView()
                 }
             }
         }
@@ -632,13 +631,36 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 .setPositiveButton("Open Settings") { _, _ ->
                     startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 }
-                .setNegativeButton("Cancel") { _, _ ->
-                    // Do nothing
+                .setNegativeButton("Cancel") { dialog, _ ->
+                    dialog.dismiss()
                 }
                 .create()
             alertDialog.show()
         } else {
             requestSingleLocationUpdate()
+        }
+    }
+    private fun checkNetworkEnabled(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as
+                ConnectivityManager
+        val network = connectivityManager.activeNetwork
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+        if (networkCapabilities != null && (
+            (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI))||
+            (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))||
+            (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)))) {
+
+            return true
+        } else {
+            val alertDialog = AlertDialog.Builder(this)
+                .setTitle("Unable to Connect")
+                .setMessage("Please check your Internet connection.")
+                .setPositiveButton("Okay") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+            alertDialog.show()
+            return false
         }
     }
 
@@ -659,7 +681,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 }
 
                 override fun onFailure(exception: Exception) {
-                    // Handle failure if needed
+                    Log.e("LocationUpdate", "Location request failed: ${exception.localizedMessage}")
                 }
             }
         }
@@ -847,10 +869,15 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         layerButton.setOnClickListener{
             clicked = if(!clicked){
                 Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
+                polylineAnnotationManagerGastam = mapView?.annotations?.createPolylineAnnotationManager()
+                polylineAnnotationManagerGastam?.lineCap = (LineCap.ROUND)
+
+                createPolyline(polylineAnnotationManagerGastam, Coordinates.gastamToLualhati, 0)
                 explorationView()
                 true
             } else {
                 polylineAnnotationManager?.deleteAll()
+                polylineAnnotationManagerGastam?.deleteAll()
                 false
             }
         }
@@ -859,39 +886,82 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private fun explorationView(){
         polylineAnnotationManager = mapView?.annotations?.createPolylineAnnotationManager()
         polylineAnnotationManager?.lineCap = (LineCap.ROUND)
+        when(currFloor){
+            9 -> createPolyline(polylineAnnotationManager,Coordinates.eightFloor, 9)
+            8 -> createPolyline(polylineAnnotationManager, Coordinates.eightFloor, 8)
+            else -> createPolyline(polylineAnnotationManager, Coordinates.firstFloor, 1)
+        }
+    }
+    private fun createPolyline(manager: PolylineAnnotationManager?,
+                               coordinateToUse: List<Point>, currentFloor: Int){
+
         val blue = ContextCompat.getColor(this, R.color.blue)
 
-        val coordinateSize = Coordinates.gastamToLualhati.size - 1
+        val coordinateSize = coordinateToUse.size - 1
         for (i in 0 until coordinateSize){
             val polylineID = JsonObject()
-            polylineID.addProperty("imageURI", "polyline$i.png")
+            polylineID.addProperty("imageURI", "$currentFloor${i+1}.png")
             val polylineAnnotationOptions: PolylineAnnotationOptions = PolylineAnnotationOptions()
-                .withPoints(listOf(Coordinates.gastamToLualhati[i], Coordinates.gastamToLualhati[i + 1]))
+                .withPoints(listOf(coordinateToUse[i], coordinateToUse[i + 1]))
                 .withLineJoin(LineJoin.ROUND)
                 .withLineColor(blue)
                 .withLineWidth(5.0)
                 .withData(polylineID)
-            polylineAnnotationManager?.create(polylineAnnotationOptions)
+            manager?.create(polylineAnnotationOptions)
         }
         val clickListener = OnPolylineAnnotationClickListener { polyline ->
-            val data = polyline.getData()
-            val jsonObject = data?.asJsonObject
-            val imageURI = jsonObject?.get("imageURI")?.asString
-            //Pass this data to the Panoramic View function
-            Toast.makeText(this, imageURI, Toast.LENGTH_SHORT).show()
+            if (checkNetworkEnabled()){
+                val data = polyline.getData()
+                val jsonObject = data?.asJsonObject
+                val imageURI = jsonObject?.get("imageURI")?.asString
+
+                downloadURL(currentFloor, imageURI)
+                Toast.makeText(this, imageURI, Toast.LENGTH_SHORT).show()
+            } else {
+                checkNetworkEnabled()
+            }
             true
         }
-        polylineAnnotationManager?.addClickListener(clickListener)
+        manager?.addClickListener(clickListener)
     }
 
     // PANORAMA
+    private fun downloadURL(floor:Int, polyname: String?){
+        val storage = FirebaseStorage.getInstance("gs://arrow-51e15.appspot.com")
+        val storageRef = storage.getReference("${floor}-floor/$polyname")
+        //val cache = this.cacheDir
+        //val imageName = "${floor}-floor${File.separator}$polyname"
+        //val imageFile = File(cache, imageName)
+        val localFile = File.createTempFile("images", "png")
+        storageRef.getFile(localFile).addOnSuccessListener {
+            Log.d("localfile123", "$localFile")
+            val uri = Uri.fromFile(localFile)
+            Panorama.getInstance()
+                .loadImageInfo(this, uri, PanoramaInterface.IMAGE_TYPE_RING)
+                .setResultCallback(ResultCallbackImpl())
+        }.addOnFailureListener{
+            Log.d("localfile123", "error")
+        }
+
+
+        /*
+        Log.d("storageRefff", "$storageRef")
+
+        storageRef.downloadUrl.addOnSuccessListener { uri ->
+            Log.d("downloadURL", "Downloaded image URI: $uri")
+            Panorama.getInstance()
+                .loadImageInfo(this, uri, PanoramaInterface.IMAGE_TYPE_RING)
+                .setResultCallback(ResultCallbackImpl())
+        }.addOnFailureListener { exception ->
+            Log.w("TAG123", "Failed to get download URL: ${exception.message}")
+        }*/
+    }
     private inner class ResultCallbackImpl : ResultCallback<PanoramaInterface.ImageInfoResult> {
         override fun onResult(panoramaResult: PanoramaInterface.ImageInfoResult) {
             if (panoramaResult == null) {
                 Log.i("Mytag", "panoramaResult is null")
                 return
             }
-
             if (panoramaResult.status.isSuccess) {
                 val intent = panoramaResult.imageDisplayIntent
                 if (intent != null) {
