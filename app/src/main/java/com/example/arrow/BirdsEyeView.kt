@@ -111,8 +111,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_birds_eye_view)
 
-
-
         // SET STATUS BAR TO TRANSPARENT
         // window.statusBarColor = resources.getColor(android.R.color.transparent)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -135,15 +133,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         scrollView.post {
             scrollView.fullScroll(ScrollView.FOCUS_DOWN)
         }
-
-
-        val btnTest = findViewById<Button>(R.id.btnTest)
-
-        btnTest.setOnClickListener {
-            // PANORAMA TEST HERE
-            Toast.makeText(this, "Panorama test", Toast.LENGTH_SHORT).show()
-        }
-
 
         val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
 
@@ -363,10 +352,10 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             enabled = false
         }
         mapView?.scalebar?.updateSettings {
-            marginTop = (height*percentage).toFloat()
+            marginTop = (height*percentage+10).toFloat()
         }
         mapView?.compass?.updateSettings {
-            marginTop = (height*percentage).toFloat()
+            marginTop = (height*percentage + 20).toFloat()
         }
     }
 
