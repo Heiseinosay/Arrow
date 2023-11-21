@@ -850,8 +850,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
         layerButton.setOnClickListener{
             clicked = if(!clicked){
-                Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
-
                 explorationView()
                 true
             } else {
@@ -871,9 +869,16 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             1 -> {
                 createPolyline(polylineAnnotationManagerGastam, Coordinates.gastamToLualhati, 0)
                 createPolyline(polylineAnnotationManager, Coordinates.firstFloor, 1)
+                Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
             }
-            9 -> createPolyline(polylineAnnotationManager,Coordinates.eightFloor, 9)
-            8 -> createPolyline(polylineAnnotationManager, Coordinates.eightFloor, 8)
+            9 -> {
+                createPolyline(polylineAnnotationManager,Coordinates.eightFloor, 9)
+                Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
+            }
+            8 -> {
+                createPolyline(polylineAnnotationManager, Coordinates.eightFloor, 8)
+                Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
+            }
             else -> Toast.makeText(this, "Exploration Line in this floor is not yet available.", Toast.LENGTH_SHORT).show()
         }
     }
