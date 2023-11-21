@@ -93,9 +93,6 @@ import com.mapbox.maps.plugin.animation.flyTo
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 
-import com.huawei.hms.panorama.Panorama
-import com.huawei.hms.panorama.PanoramaInterface
-import com.huawei.hms.support.api.client.ResultCallback
 import com.mapbox.android.core.location.LocationEngineCallback
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.location.LocationEngineRequest
@@ -170,20 +167,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         scrollView.post {
             scrollView.fullScroll(ScrollView.FOCUS_DOWN)
         }
-
-
-        val btnTest = findViewById<Button>(R.id.btnTest)
-
-        btnTest.setOnClickListener {
-            // PANORAMA TEST HERE
-           // Toast.makeText(this, "Panorama test", Toast.LENGTH_SHORT).show()
-            val uri = Uri.parse("android.resource://" + packageName + "/" + R.drawable.imagetest3)
-            Panorama.getInstance()
-                .loadImageInfo(this, uri, PanoramaInterface.IMAGE_TYPE_RING)
-                .setResultCallback(ResultCallbackImpl())
-
-        }
-
 
         val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
 
@@ -309,7 +292,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         bottomSheet = findViewById(R.id.sheet)
 
         BottomSheetBehavior.from(bottomSheet).apply {
-            peekHeight = 440
+            peekHeight = 435
             this.state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
@@ -882,26 +865,5 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             true
         }
         polylineAnnotationManager?.addClickListener(clickListener)
-    }
-
-    // PANORAMA
-    private inner class ResultCallbackImpl : ResultCallback<PanoramaInterface.ImageInfoResult> {
-        override fun onResult(panoramaResult: PanoramaInterface.ImageInfoResult) {
-            if (panoramaResult == null) {
-                Log.i("Mytag", "panoramaResult is null")
-                return
-            }
-
-            if (panoramaResult.status.isSuccess) {
-                val intent = panoramaResult.imageDisplayIntent
-                if (intent != null) {
-                    startActivity(intent)
-                } else {
-                    Log.i("Mytag", "unknown error, view intent is null")
-                }
-            } else {
-                Log.i("Mytag", "error status : ${panoramaResult.status}")
-            }
-        }
     }
 }
