@@ -1,7 +1,7 @@
 package com.example.arrow
 
+import com.example.arrow.utils.*
 //import android.preference.PreferenceManager
-
 
 import android.Manifest
 import android.animation.AnimatorSet
@@ -9,9 +9,13 @@ import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+
+import android.content.res.Resources
+
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
+
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Typeface
@@ -90,6 +94,12 @@ import com.mapbox.maps.plugin.locationcomponent.location
 
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
+
+import com.mapbox.maps.plugin.attribution.attribution
+import com.mapbox.maps.plugin.compass.compass
+import com.mapbox.maps.plugin.logo.logo
+import com.mapbox.maps.plugin.scalebar.scalebar
+
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 
@@ -98,6 +108,7 @@ import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.location.LocationEngineRequest
 import com.mapbox.android.core.location.LocationEngineResult
 import java.lang.Exception
+
 
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
@@ -372,8 +383,26 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         mapView = findViewById(R.id.mapView)
         mapboxMap = mapView?.getMapboxMap()
 
+        modBuiltinUI()
         onMapReady()
         layerButtonListener()
+    }
+
+    private fun modBuiltinUI() {
+        val height = Resources.getSystem().displayMetrics.heightPixels
+        val percentage = 0.025f
+        mapView?.logo?.updateSettings {
+            enabled = false
+        }
+        mapView?.attribution?.updateSettings {
+            enabled = false
+        }
+        mapView?.scalebar?.updateSettings {
+            marginTop = (height*percentage+10).toFloat()
+        }
+        mapView?.compass?.updateSettings {
+            marginTop = (height*percentage + 20).toFloat()
+        }
     }
 
     private fun onMapReady() {
