@@ -366,6 +366,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         mapboxMap = mapView?.getMapboxMap()
 
         navGraph = setupNavigationGraph()
+        navGraph.maxRouteSize = 1
         onMapReady()
     }
 
@@ -834,7 +835,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         thread(true,true) {
             drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_01)
             drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_02)
-            if (distanceOf(userLoc!!, destination) <= 0.1) {
+            if (distanceOf(userLoc, destination) <= 0.1) {
                 isPathingEnabled = false
                 cDestination = null
                 return@thread
@@ -842,13 +843,36 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             Log.i("FindRoute", "Dest: $destination")
             var priority = 0
             if (lbMapLayers?.currFloor != 8) {
-                priority = Property.Entry.value or Property.Exit.value
+                priority = Property.Entry.value or
+                        Property.Exit.value or
+                        if (ProfileObjects.role == "Employee") Property.Faculty.value else 0
+                navGraph.searchNearest(userLoc,priority,true)?.let {
+                    Log.i("FindRoute", "Priority: ${ it.property }")
+                    drawDirection(
+                        mapboxMap?.getStyle()!!,
+                        listOf(userLoc, it.loc),
+                        GEO_SOURCE_ID_01
+                    )
+                    lifecycleScope.launch {
+                        mutex.withLock {
+                            isPathingEnabled = true
+                            cDestination = destination
+                        }
+                    }
+                    return@thread
+                }
+                // can't test outside of UE
+//                navGraph.searchNearest(userLoc,priority)?.let {
+//                    if (distanceOf(userLoc, it.loc) <= 0.5) {
+//                        findViewById<TextView>(R.id.eightFloor).performClick()
+//                    }
+//                }
             }
             Log.i("FindRoute", "Priority: $priority")
-            Log.i("FindRouteParams", "Params: ${userLoc!!.longitude()} ${userLoc!!.latitude()}\n${destination.longitude()} ${destination.latitude()}")
+            Log.i("FindRouteParams", "Params: ${userLoc.longitude()} ${userLoc.latitude()}\n${destination.longitude()} ${destination.latitude()}")
             Log.i("FindRouteParams", "${priority}  ${findFirst?.longitude()} ${findFirst?.latitude()}")
             val routes = navGraph.requestRoute(
-                userLoc!!,
+                userLoc,
                 destination,
                 priority,
                 findFirst

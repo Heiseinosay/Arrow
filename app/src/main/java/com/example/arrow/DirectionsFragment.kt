@@ -68,6 +68,7 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
                     val db = dbHelper.readableDatabase
                     suggestion(db, s, id)
                     db.close()
+                    context.updateDirFragBundle(if (id == 0) CURR_LOC else DEST_LOC, s.toString())
                 }
 
             })
@@ -129,11 +130,11 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
 
         if (sbCurrLoc != YOUR_LOCATION) {
             Log.i("DestinationFragmentFindPath", "sbCurrLoc: $sbCurrLoc")
-                val ret = getStringFrom("SELECT * FROM MapIndex WHERE RoomID LIKE '$sbCurrLoc'")
-                if (ret.isEmpty()) {
-                    db.close()
-                    return
-                }
+            val ret = getStringFrom("SELECT * FROM MapIndex WHERE RoomID LIKE '$sbCurrLoc'")
+            if (ret.isEmpty()) {
+                db.close()
+                return
+            }
             findFirst = toROOMSPoint(ret)
         }
         else {
@@ -147,18 +148,17 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
             db.close()
             return
         }
-        destination = toROOMSPoint(ret)
+        if (findFirst != null) destination = toROOMSPoint(ret,findFirst)
+        else destination = toROOMSPoint(ret)
 
         db.close()
         if (destination == null) return
         Log.i("DirectionsFragmentFindPath", "$findFirst $destination")
 
-        context.updateDirFragBundle(CURR_LOC, sbCurrLoc)
-        context.updateDirFragBundle(DEST_LOC, sbDestLoc)
         context.findRoute(findFirst, destination)
     }
 
-    private fun toROOMSPoint(s: String): Point? {
+    private fun toROOMSPoint(s: String, cmp: Point? = null): Point? {
         val indexes = s.split(',')
         Log.i("DirectionsFragmentIndexes", "" + indexes)
         val userLoc = context.checkLocationEnabled()
@@ -173,9 +173,10 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
         var closestDist = 1000.0
         for (i in indexes) {
             i.toIntOrNull()?.let {
+                Log.i("DirectionsFragment", "New dist ${ distanceOf(userLoc, ROOMS[it]) }")
                 if (closest == null ||
-                closestDist > distanceOf(userLoc, ROOMS[it])) {
-                    Log.i("DirectionsFragment", "New Closest")
+                closestDist > distanceOf(if( cmp != null ) cmp else userLoc, ROOMS[it])) {
+                    Log.i("DirectionsFragment", "New Closest ${ distanceOf(userLoc, ROOMS[it]) }")
                     closest = ROOMS[it]
                     closestDist = distanceOf(userLoc, ROOMS[it])
                 }
@@ -183,7 +184,7 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
         }
         Log.w(
             "DirectionsFragment",
-            "closeset is $closest"
+            "closest is $closest"
         )
         return closest
     }

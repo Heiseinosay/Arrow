@@ -213,7 +213,8 @@ enum class Property(val value: Int) {
     Entry(1),
     Exit(2),
     Emergency(4),
-    Faculty(8)
+    Faculty(8),
+    Slow(16)
 }
 
 data class Node(val loc: Point, val property: Int = 0) {
@@ -246,7 +247,7 @@ class NavigationGraph(base: Node) {
     // not the root node
     // the starting node is where the search will start
     var start = base
-    var MAXIMUM_ROUTE_SIZE = 2
+    var maxRouteSize = 2
 
     data class RouteNode(val from: Node? = null, val dist: Double = 100.0)
 
@@ -270,10 +271,10 @@ class NavigationGraph(base: Node) {
         return null
     }
 
-    fun searchNearest(target: Point, priority: Int = 0): Node? {
+    fun searchNearest(target: Point, priority: Int = 0, exact: Boolean = false): Node? {
         val q: ArrayDeque<Node> = ArrayDeque<Node>()
         val visited: MutableSet<Node> = mutableSetOf<Node>()
-        var cDist = 100.0
+        var cDist = 10000.0
         var cLoc: Node? = null
         q.add(start)
 
@@ -292,6 +293,10 @@ class NavigationGraph(base: Node) {
 
                 if (priority != 0) {
                     if (cLoc == null && curr.neighbors[i].property and priority != 0 ) {
+                        cDist = nDist
+                        cLoc = curr.neighbors[i]
+                    }
+                    else if (curr.neighbors[i].property == priority && exact) {
                         cDist = nDist
                         cLoc = curr.neighbors[i]
                     }
@@ -390,7 +395,7 @@ class NavigationGraph(base: Node) {
         val routes: MutableList<Pair< Double,List<Node> >> = mutableListOf()
         val disabled: MutableSet<Node> = mutableSetOf()
 
-        for (i in 1..MAXIMUM_ROUTE_SIZE) {
+        for (i in 1..maxRouteSize) {
             val froute = findPath(destination, disabled)
             Log.i(TAG+"froute", "" + froute)
             if (froute.second.isNotEmpty()) {
@@ -432,10 +437,10 @@ fun setupNavigationGraph(): NavigationGraph {
     val elev2 = Node(POINTS[1])
     elev1.add(elev2)
     elev1.add(Node(ROOMS[41], entryexit))?.let { it.add(elev1) }
-    elev1.add(Node(ROOMS[48], entryexit))?.let { it.add(elev1) }
+    elev1.add(Node(ROOMS[48], entryexit or Property.Slow.value))?.let { it.add(elev1) }
     elev2.add(elev1)
     elev2.add(Node(ROOMS[42], entryexit))?.let { it.add(elev2) }
-    elev2.add(Node(ROOMS[49], entryexit))?.let { it.add(elev2) }
+    elev2.add(Node(ROOMS[49], entryexit or Property.Slow.value))?.let { it.add(elev2) }
     val elev2sideMiddle = elev2.add(Node(POINTS[2]))
     elev2sideMiddle!!.add(elev2)
     val elev2SideTop = Node(POINTS[3])
@@ -488,13 +493,13 @@ fun setupNavigationGraph(): NavigationGraph {
 
     conn1.add(conn126)?.let { n ->
         n.add(conn1)
-        n.add(Node(ROOMS[51], entryexit))?.let { it.add(n) }
-        n.add(Node(ROOMS[53], entryexit))?.let { it.add(n) }
+        n.add(Node(ROOMS[51], entryexit or Property.Slow.value))?.let { it.add(n) }
+        n.add(Node(ROOMS[53], entryexit or Property.Slow.value))?.let { it.add(n) }
         n.add(conn127)?.let { nn ->
 
         nn.add(n)
-        nn.add(Node(ROOMS[50], entryexit))?.let { it.add(nn) }
-        nn.add(Node(ROOMS[52], entryexit))?.let { it.add(nn) }
+        nn.add(Node(ROOMS[50], entryexit or Property.Slow.value))?.let { it.add(nn) }
+        nn.add(Node(ROOMS[52], entryexit or Property.Slow.value))?.let { it.add(nn) }
         nn.add(conn4)?.let { nnn -> nnn.add(nn) }
     } }
     conn2.add(conn128)?.let { n ->
@@ -512,7 +517,7 @@ fun setupNavigationGraph(): NavigationGraph {
         n.add(Node(ROOMS[22]))?.let { it.add(n) }
         n.add(conn3)?.let { nn ->
 
-        nn.add(Node(ROOMS[44]))?.let { it.add(nn) }
+        nn.add(Node(ROOMS[44], entryexit or Property.Emergency.value))?.let { it.add(nn) }
         nn.add(n)
     } }
 
@@ -686,7 +691,7 @@ fun setupNavigationGraph(): NavigationGraph {
         xxx.add(Node(ROOMS[47]))?.let { it.add(xxx) }
         xxx.add(Node(POINTS[59]))?.let { xxxx ->
 
-        xxxx.add(Node(ROOMS[45]))?.let { it.add(xxxx) }
+        xxxx.add(Node(ROOMS[45], entryexit or Property.Emergency.value))?.let { it.add(xxxx) }
         xxxx.add(xxx)
     } } } } } } } }
 
