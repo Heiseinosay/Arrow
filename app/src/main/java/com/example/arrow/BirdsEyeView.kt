@@ -165,20 +165,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             scrollView.fullScroll(ScrollView.FOCUS_DOWN)
         }
 
-
-        val btnTest = findViewById<Button>(R.id.btnTest)
-
-        btnTest.setOnClickListener {
-            // PANORAMA TEST HERE
-           // Toast.makeText(this, "Panorama test", Toast.LENGTH_SHORT).show()
-            val uri = Uri.parse("android.resource://" + packageName + "/" + R.drawable.imagetest3)
-            Panorama.getInstance()
-                .loadImageInfo(this, uri, PanoramaInterface.IMAGE_TYPE_RING)
-                .setResultCallback(ResultCallbackImpl())
-
-        }
-
-
         val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
 
         for (i in allTextViews.indices) {
@@ -900,7 +886,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         val coordinateSize = coordinateToUse.size - 1
         for (i in 0 until coordinateSize){
             val polylineID = JsonObject()
-            polylineID.addProperty("imageURI", "$currentFloor${i+1}.png")
+            polylineID.addProperty("imageURI", "$currentFloor${i+1}")
             val polylineAnnotationOptions: PolylineAnnotationOptions = PolylineAnnotationOptions()
                 .withPoints(listOf(coordinateToUse[i], coordinateToUse[i + 1]))
                 .withLineJoin(LineJoin.ROUND)
@@ -914,8 +900,12 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 val data = polyline.getData()
                 val jsonObject = data?.asJsonObject
                 val imageURI = jsonObject?.get("imageURI")?.asString
+                val panoramaURL = "https://uearrow-panorama.netlify.app/?mode=explore&floor=${currentFloor}th&pos=$imageURI"
+                val intentPanorama = Intent(Intent.ACTION_VIEW, Uri.parse(panoramaURL))
+                Log.d("intentPanorama", "${Uri.parse(panoramaURL)}")
+                startActivity(intentPanorama)
 
-                downloadURL(currentFloor, imageURI)
+                //downloadURL(currentFloor, imageURI)
                 Toast.makeText(this, imageURI, Toast.LENGTH_SHORT).show()
             } else {
                 checkNetworkEnabled()
@@ -923,55 +913,5 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             true
         }
         manager?.addClickListener(clickListener)
-    }
-
-    // PANORAMA
-    private fun downloadURL(floor:Int, polyname: String?){
-        val storage = FirebaseStorage.getInstance("gs://arrow-51e15.appspot.com")
-        val storageRef = storage.getReference("${floor}-floor/$polyname")
-        //val cache = this.cacheDir
-        //val imageName = "${floor}-floor${File.separator}$polyname"
-        //val imageFile = File(cache, imageName)
-        val localFile = File.createTempFile("images", "png")
-        storageRef.getFile(localFile).addOnSuccessListener {
-            Log.d("localfile123", "$localFile")
-            val uri = Uri.fromFile(localFile)
-            Panorama.getInstance()
-                .loadImageInfo(this, uri, PanoramaInterface.IMAGE_TYPE_RING)
-                .setResultCallback(ResultCallbackImpl())
-        }.addOnFailureListener{
-            Log.d("localfile123", "error")
-        }
-
-
-        /*
-        Log.d("storageRefff", "$storageRef")
-
-        storageRef.downloadUrl.addOnSuccessListener { uri ->
-            Log.d("downloadURL", "Downloaded image URI: $uri")
-            Panorama.getInstance()
-                .loadImageInfo(this, uri, PanoramaInterface.IMAGE_TYPE_RING)
-                .setResultCallback(ResultCallbackImpl())
-        }.addOnFailureListener { exception ->
-            Log.w("TAG123", "Failed to get download URL: ${exception.message}")
-        }*/
-    }
-    private inner class ResultCallbackImpl : ResultCallback<PanoramaInterface.ImageInfoResult> {
-        override fun onResult(panoramaResult: PanoramaInterface.ImageInfoResult) {
-            if (panoramaResult == null) {
-                Log.i("Mytag", "panoramaResult is null")
-                return
-            }
-            if (panoramaResult.status.isSuccess) {
-                val intent = panoramaResult.imageDisplayIntent
-                if (intent != null) {
-                    startActivity(intent)
-                } else {
-                    Log.i("Mytag", "unknown error, view intent is null")
-                }
-            } else {
-                Log.i("Mytag", "error status : ${panoramaResult.status}")
-            }
-        }
     }
 }
