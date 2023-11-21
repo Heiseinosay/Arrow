@@ -12,9 +12,59 @@
         android:layout_height="match_parent"
         app:mapbox_cameraTargetLat="14.60195"
         app:mapbox_cameraTargetLng="120.98945"
-        app:mapbox_cameraZoom="18">
+        app:mapbox_cameraZoom="18"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="136dp">
     </com.mapbox.maps.MapView>
 
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/lightGrey"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="170dp">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_height="match_parent"
+            android:layout_width="match_parent">
+        <!--Focus Location-->
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/focusLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/lightGrey"
+                android:clickable="true"
+                android:layout_margin="8dp"
+                app:elevation="0dp"
+                android:contentDescription="Focus to present location"
+                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:shapeAppearanceOverlay="@style/CircularShape"
+                app:srcCompat="@drawable/ic_focus_location" />
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/layerButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/lightGrey"
+                android:clickable="true"
+                android:layout_margin="8dp"
+                app:elevation="0dp"
+                android:contentDescription="TODO"
+                android:focusable="true"
+                app:layout_constraintBottom_toTopOf="@+id/focusLocation"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:shapeAppearanceOverlay="@style/CircularShape"
+                app:srcCompat="@drawable/ic_panoramic_view" />
+          
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
@@ -369,7 +419,7 @@
                     <ImageView
                         android:id="@+id/imageView"
                         android:layout_width="70dp"
-                        android:layout_height="5dp"
+                        android:layout_height="3dp"
                         android:layout_gravity="center|top"
                         android:scaleType="centerCrop"
                         android:src="@drawable/vertical_bar"
@@ -378,7 +428,7 @@
                         app:layout_constraintHorizontal_bias="0.498"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintVertical_bias="0.023" />
+                        app:layout_constraintVertical_bias="0.02" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
