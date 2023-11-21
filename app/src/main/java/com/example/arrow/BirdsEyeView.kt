@@ -57,11 +57,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.JsonObject
-import com.huawei.hms.panorama.Panorama
-import com.huawei.hms.panorama.PanoramaInterface
-import com.huawei.hms.support.api.client.ResultCallback
 import com.mapbox.android.core.location.LocationEngineCallback
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.location.LocationEngineRequest
@@ -93,7 +89,6 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
-import java.io.File
 
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
@@ -221,6 +216,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 currFloor = i+1
                 if (clicked){
                     polylineAnnotationManager?.deleteAll()
+                    polylineAnnotationManagerGastam?.deleteAll()
                     explorationView()
                 }
             }
@@ -855,10 +851,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         layerButton.setOnClickListener{
             clicked = if(!clicked){
                 Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
-                polylineAnnotationManagerGastam = mapView?.annotations?.createPolylineAnnotationManager()
-                polylineAnnotationManagerGastam?.lineCap = (LineCap.ROUND)
 
-                createPolyline(polylineAnnotationManagerGastam, Coordinates.gastamToLualhati, 0)
                 explorationView()
                 true
             } else {
@@ -870,12 +863,18 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     }
 
     private fun explorationView(){
+        polylineAnnotationManagerGastam = mapView?.annotations?.createPolylineAnnotationManager()
+        polylineAnnotationManagerGastam?.lineCap = (LineCap.ROUND)
         polylineAnnotationManager = mapView?.annotations?.createPolylineAnnotationManager()
         polylineAnnotationManager?.lineCap = (LineCap.ROUND)
         when(currFloor){
+            1 -> {
+                createPolyline(polylineAnnotationManagerGastam, Coordinates.gastamToLualhati, 0)
+                createPolyline(polylineAnnotationManager, Coordinates.firstFloor, 1)
+            }
             9 -> createPolyline(polylineAnnotationManager,Coordinates.eightFloor, 9)
             8 -> createPolyline(polylineAnnotationManager, Coordinates.eightFloor, 8)
-            else -> createPolyline(polylineAnnotationManager, Coordinates.firstFloor, 1)
+            else -> Toast.makeText(this, "Exploration Line in this floor is not yet available.", Toast.LENGTH_SHORT).show()
         }
     }
     private fun createPolyline(manager: PolylineAnnotationManager?,
