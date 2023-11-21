@@ -84,7 +84,7 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btSwitchLoc"
             android:layout_width="30dp"
             android:layout_height="30dp"
