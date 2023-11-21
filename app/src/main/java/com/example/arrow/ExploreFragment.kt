@@ -10,6 +10,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -65,6 +66,12 @@ class ExploreFragment : Fragment(R.layout.fragment_explore), FragmentToActivityS
         // INITIALIZE TOTAL SUGGESTIONS
         var totalSuggestions = 0
 
+        // EMPTY SEARCH BAR
+        val emptyField = view.findViewById<Button>(R.id.btn_empty)
+        emptyField.setOnClickListener {
+            etSearchBar.setText("")
+        }
+
         etSearchBar.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
@@ -83,8 +90,17 @@ class ExploreFragment : Fragment(R.layout.fragment_explore), FragmentToActivityS
                 // DATABASE OPERATION HERE
                 val entered = etSearchBar.text.toString()
                 var cursor: Cursor? = null
+
+                // CHANGE SUGGESTIONS/FOR YOU
+                val txtStatus = view.findViewById<TextView>(R.id.tv_suggestion)
                 if (entered != "") {
                     cursor = db.rawQuery("SELECT * FROM coords WHERE RoomID LIKE '%$entered%'", null)
+                    txtStatus.text = "Suggestions"
+                    emptyField.visibility = View.VISIBLE
+                } else {
+                    cursor = db.rawQuery("SELECT * FROM coords WHERE STATUS = 'Foryou'", null)
+                    emptyField.visibility = View.INVISIBLE
+                    txtStatus.text = "For you"
                 }
 
 
@@ -169,7 +185,7 @@ class ExploreFragment : Fragment(R.layout.fragment_explore), FragmentToActivityS
                     view?.findViewById<ScrollView>(R.id.svSuggestions)?.addView(linearLayout)
                     totalSuggestions = suggestions.size
                 } else {
-                    Toast.makeText(context, "Empty", Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, "Empty", Toast.LENGTH_SHORT).show()
                     Log.e("DB_TEST", "No data in the cursor or cursor is null.")
                 }
 
@@ -178,13 +194,16 @@ class ExploreFragment : Fragment(R.layout.fragment_explore), FragmentToActivityS
 
             }
         })
+        // INTIALIZE FOR YOU ON START UP
+        etSearchBar.setText("")
+
         etSearchBar.setOnEditorActionListener { _, actionId, _ ->
             Log.d("Hello", etSearchBar.text.toString())
             if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO ||
                 actionId == EditorInfo.IME_ACTION_SEND || actionId == EditorInfo.IME_ACTION_SEARCH
             ) {
 //                Toast.makeText(context, "Hello", Toast.LENGTH_SHORT).show()
-
+                
                 searchValue = etSearchBar.text.toString()
                 if (searchValue == "") {
                     Toast.makeText(context, "Please Enter something.", Toast.LENGTH_SHORT).show()

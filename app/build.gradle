@@ -38,8 +38,6 @@ android {
 
 dependencies {
 
-    // HMS PANORAMA
-    implementation 'com.huawei.hms:panorama:4.0.4.301'
     // DRAG
     implementation 'com.google.android.material:material:1.11.0-alpha02'
 

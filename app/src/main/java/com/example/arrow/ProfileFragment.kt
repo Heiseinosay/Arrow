@@ -56,31 +56,28 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             getActivity()?.finish();
         }
 
+        // HELP LINK
+        val tvHelp = view.findViewById<TextView>(R.id.tv_help)
+        tvHelp.setOnClickListener { redirect(0) }
+        val helpImg = view.findViewById<ImageView>(R.id.iv_help)
+        helpImg.setOnClickListener { redirect(0) }
+
         // TERMS LINK
         val terms = view.findViewById<TextView>(R.id.tv_terms)
         terms.setOnClickListener { redirect(1) }
-        val helpImg = view.findViewById<ImageView>(R.id.iv_help)
-        helpImg.setOnClickListener { redirect(1) }
-
-        // HELP LINK
-        val tv_help = view.findViewById<TextView>(R.id.tv_terms)
-        tv_help.setOnClickListener { redirect(0) }
         val termsImg = view.findViewById<ImageView>(R.id.iv_terms)
-        termsImg.setOnClickListener { redirect(0) }
+        termsImg.setOnClickListener { redirect(1) }
+
     }
 
     private fun redirect(num:Int) {
-        // Specify the URL of the website
         var websiteUrl:String = ""
         if (num == 0) {
             websiteUrl = "https://aaronmanlogon.github.io/arrow/support.html"
         } else {
             websiteUrl = "https://aaronmanlogon.github.io/arrow/tc.html"
         }
-        // Create an intent to open the website
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(websiteUrl))
-
-        // Check if there's an app available to handle the intent
         if (intent.resolveActivity(requireContext().packageManager) != null) {
             startActivity(intent)
         } else {
