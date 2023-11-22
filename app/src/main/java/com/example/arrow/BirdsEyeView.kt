@@ -9,15 +9,25 @@ import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+
+import android.content.res.Resources
+
 import android.content.Intent
 import android.content.pm.PackageManager
+
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.LocationManager
+
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -33,6 +43,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.cardview.widget.CardView
@@ -43,14 +54,25 @@ import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
+
 import androidx.lifecycle.lifecycleScope
+import com.example.arrow.utils.*
+
 import com.example.sqlitedatabase.DataBaseHandler
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.gson.JsonObject
+import com.mapbox.android.core.location.LocationEngineCallback
+import com.mapbox.android.core.location.LocationEngineProvider
+import com.mapbox.android.core.location.LocationEngineRequest
+import com.mapbox.android.core.location.LocationEngineResult
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraBoundsOptions
@@ -61,15 +83,24 @@ import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
 import com.mapbox.maps.extension.style.expressions.generated.Expression
+import com.mapbox.maps.extension.style.layers.properties.generated.LineCap
+import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.plugin.LocationPuck2D
+import com.mapbox.maps.plugin.animation.MapAnimationOptions
+import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListener
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
+
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
 import kotlinx.coroutines.launch
@@ -83,6 +114,15 @@ import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.location.LocationEngineRequest
 import com.mapbox.android.core.location.LocationEngineResult
 import java.lang.Exception
+
+
+import com.mapbox.maps.plugin.attribution.attribution
+import com.mapbox.maps.plugin.compass.compass
+import com.mapbox.maps.plugin.logo.logo
+import com.mapbox.maps.plugin.scalebar.scalebar
+
+import java.lang.Exception
+
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     lateinit var reqPermissionLauncher: ActivityResultLauncher<Array<String>>
@@ -105,6 +145,13 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     // avoid data race on thread
     val mutex = Mutex()
 
+    private val REQUEST_CHECK_SETTINGS = 123
+    private var currFloor = 1
+    var polylineAnnotationManager: PolylineAnnotationManager? = null
+    var polylineAnnotationManagerGastam: PolylineAnnotationManager? = null
+    var clicked = false
+
+
     // FRAGMENT VALUE PASS
     private val fragment: ExploreFragment by lazy {
         supportFragmentManager.findFragmentById(R.id.fragment_explore) as ExploreFragment
@@ -120,8 +167,10 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
         Manifest.permission.INTERNET,
     )
+
     var mapView: MapView? = null
     var mapboxMap: MapboxMap? = null
+
 
     var lbMapLayers: MapLayer? = null
 
@@ -152,15 +201,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         scrollView.post {
             scrollView.fullScroll(ScrollView.FOCUS_DOWN)
         }
-
-
-        val btnTest = findViewById<Button>(R.id.btnTest)
-
-        btnTest.setOnClickListener {
-            // PANORAMA TEST HERE
-            Toast.makeText(this, "Panorama test", Toast.LENGTH_SHORT).show()
-        }
-
 
         val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
 
@@ -214,6 +254,12 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                             )
                         )
                     )
+                }
+                currFloor = i+1
+                if (clicked){
+                    polylineAnnotationManager?.deleteAll()
+                    polylineAnnotationManagerGastam?.deleteAll()
+                    explorationView()
                 }
             }
         }
@@ -286,7 +332,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         bottomSheet = findViewById(R.id.sheet)
 
         BottomSheetBehavior.from(bottomSheet).apply {
-            peekHeight = 440
+            peekHeight = 410
             this.state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
@@ -349,7 +395,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
 
-
         reqPermissionLauncher =
             registerForActivityResult(
                 ActivityResultContracts.RequestMultiplePermissions()
@@ -367,7 +412,36 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
         navGraph = setupNavigationGraph()
         navGraph.maxRouteSize = 1
+
+        modBuiltinUI()
+
         onMapReady()
+        layerButtonListener()
+    }
+
+    fun isUserLocationInsideBounds(userLocation: LatLng): Boolean {
+        val southwest = LatLng(14.59990, 120.98452)
+        val northeast = LatLng(14.60415, 120.99466)
+        val bounds = LatLngBounds.Builder().include(southwest).include(northeast).build()
+        // Toast.makeText(this, "$userLocation", Toast.LENGTH_SHORT).show()
+        return bounds.contains(userLocation)
+    }
+
+    private fun modBuiltinUI() {
+        val height = Resources.getSystem().displayMetrics.heightPixels
+        val percentage = 0.025f
+        mapView?.logo?.updateSettings {
+            enabled = false
+        }
+        mapView?.attribution?.updateSettings {
+            enabled = false
+        }
+        mapView?.scalebar?.updateSettings {
+            marginTop = (height*percentage+10).toFloat()
+        }
+        mapView?.compass?.updateSettings {
+            marginTop = (height*percentage + 20).toFloat()
+        }
     }
 
     private fun onMapReady() {
@@ -415,7 +489,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     // SEARCH ANIMATION
     @SuppressLint("Range")
     private fun searchAnimate(searchValue: String) {
-
         // FLOOR ID'S
         val tvGroundFloor = findViewById<TextView>(R.id.groundFloor)
         val tvSecondFloor = findViewById<TextView>(R.id.secondFloor)
@@ -553,6 +626,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         prevUserLocation = it
     }
 
+
     private val onMoveListener = object : OnMoveListener {
         override fun onMoveBegin(detector: MoveGestureDetector) {
             onCameraTrackingDismissed()
@@ -580,16 +654,17 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
     private fun initLocationComponent() {
         val locationComponentPlugin = mapView?.location
+
         locationComponentPlugin?.updateSettings {
             this.enabled = true
             this.locationPuck = LocationPuck2D(
                 bearingImage = AppCompatResources.getDrawable(
                     this@BirdsEyeView,
-                    R.drawable.arrowvector,
+                    R.drawable.explore_selected,
                 ),
                 shadowImage = AppCompatResources.getDrawable(
                     this@BirdsEyeView,
-                    R.drawable.arrowvector,
+                    R.drawable.explore_selected,
                 ),
                 scaleExpression = interpolate {
                     linear()
@@ -630,6 +705,30 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         }
         return null
     }
+    
+    private fun checkNetworkEnabled(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as
+                ConnectivityManager
+        val network = connectivityManager.activeNetwork
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+        if (networkCapabilities != null && (
+            (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI))||
+            (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))||
+            (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)))) {
+
+            return true
+        } else {
+            val alertDialog = AlertDialog.Builder(this)
+                .setTitle("Unable to Connect")
+                .setMessage("Please check your Internet connection.")
+                .setPositiveButton("Okay") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+            alertDialog.show()
+            return false
+        }
+    }
 
     // GET USER CURRENT LOCATION
     private var locationCallback: LocationEngineCallback<LocationEngineResult>? = null
@@ -653,15 +752,24 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             }
         }
 
-        val camera = CameraOptions.Builder()
-            .center(Point.fromLngLat(longitude,latitude))
-            .zoom(22.0)
-            .bearing(0.0)
-            .build()
-        val animationOptions = MapAnimationOptions.mapAnimationOptions {
-            duration(3000) // Duration in milliseconds for the animation
+
+        // CHECK IF INSIDE BOUNDS
+        val userLocation = LatLng(latitude, longitude) // inside
+        val isInside:Boolean = isUserLocationInsideBounds(userLocation)
+        Toast.makeText(this, "$isInside", Toast.LENGTH_SHORT).show()
+
+        if (isInside) {
+            val camera = CameraOptions.Builder()
+                .center(Point.fromLngLat(longitude,latitude))
+                .zoom(22.0)
+                .bearing(0.0)
+                .build()
+            val animationOptions = MapAnimationOptions.mapAnimationOptions {
+                duration(3000) // Duration in milliseconds for the animation
+            }
+            mapboxMap?.flyTo(camera, animationOptions)
         }
-        mapboxMap?.flyTo(camera, animationOptions)
+
 
         val request = LocationEngineRequest.Builder(1000L)
             .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -676,11 +784,13 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+
             return null
         }
 
         locationEngine.requestLocationUpdates(request, locationCallback!!, mainLooper)
         locationEngine.getLastLocation(locationCallback!!)
+
         return Point.fromLngLat(longitude, latitude)
     }
 
@@ -824,6 +934,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         reqPermissionLauncher.launch(PERMISSIONS)
     }
 
+
     fun updateDirFragBundle(key: String, value: String) {
         destFragBundle.putString(key, value)
     }
@@ -896,5 +1007,85 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 }
             }
         }
+
+    private fun layerButtonListener() {
+        val focusLocation = findViewById<FloatingActionButton>(R.id.focusLocation)
+        val layerButton = findViewById<FloatingActionButton>(R.id.layerButton)
+        
+         focusLocation.setOnClickListener {
+            // Toast.makeText(this, "working", Toast.LENGTH_SHORT).show()
+            checkLocationEnabled()
+        }
+
+
+        layerButton.setOnClickListener{
+            clicked = if(!clicked){
+                explorationView()
+                true
+            } else {
+                polylineAnnotationManager?.deleteAll()
+                polylineAnnotationManagerGastam?.deleteAll()
+                false
+            }
+        }
+    }
+
+    private fun explorationView(){
+        polylineAnnotationManagerGastam = mapView?.annotations?.createPolylineAnnotationManager()
+        polylineAnnotationManagerGastam?.lineCap = (LineCap.ROUND)
+        polylineAnnotationManager = mapView?.annotations?.createPolylineAnnotationManager()
+        polylineAnnotationManager?.lineCap = (LineCap.ROUND)
+        when(currFloor){
+            1 -> {
+                createPolyline(polylineAnnotationManagerGastam, Coordinates.gastamToLualhati, 0)
+                createPolyline(polylineAnnotationManager, Coordinates.firstFloor, 1)
+                // Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
+            }
+            9 -> {
+                createPolyline(polylineAnnotationManager,Coordinates.eightFloor, 9)
+                // Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
+            }
+            8 -> {
+                createPolyline(polylineAnnotationManager, Coordinates.eightFloor, 8)
+                // Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
+            }
+            else -> Toast.makeText(this, "Exploration Line in this floor is not yet available.", Toast.LENGTH_SHORT).show()
+        }
+    }
+    private fun createPolyline(manager: PolylineAnnotationManager?,
+                               coordinateToUse: List<Point>, currentFloor: Int){
+
+        val blue = ContextCompat.getColor(this, R.color.blue)
+
+        val coordinateSize = coordinateToUse.size - 1
+        for (i in 0 until coordinateSize){
+            val polylineID = JsonObject()
+            polylineID.addProperty("imageURI", "$currentFloor${i+1}")
+            val polylineAnnotationOptions: PolylineAnnotationOptions = PolylineAnnotationOptions()
+                .withPoints(listOf(coordinateToUse[i], coordinateToUse[i + 1]))
+                .withLineJoin(LineJoin.ROUND)
+                .withLineColor(blue)
+                .withLineWidth(5.0)
+                .withData(polylineID)
+            manager?.create(polylineAnnotationOptions)
+        }
+        val clickListener = OnPolylineAnnotationClickListener { polyline ->
+            if (checkNetworkEnabled()){
+                val data = polyline.getData()
+                val jsonObject = data?.asJsonObject
+                val imageURI = jsonObject?.get("imageURI")?.asString
+                val panoramaURL = "https://uearrow-panorama.netlify.app/?mode=explore&floor=${currentFloor}th&pos=$imageURI"
+                val intentPanorama = Intent(Intent.ACTION_VIEW, Uri.parse(panoramaURL))
+                Log.d("intentPanorama", "${Uri.parse(panoramaURL)}")
+                startActivity(intentPanorama)
+
+                //downloadURL(currentFloor, imageURI)
+                Toast.makeText(this, imageURI, Toast.LENGTH_SHORT).show()
+            } else {
+                checkNetworkEnabled()
+            }
+            true
+        }
+        manager?.addClickListener(clickListener)
     }
 }

@@ -24,7 +24,7 @@
             app:layout_constraintHorizontal_bias="0.493"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.049">
+            app:layout_constraintVertical_bias="0.03">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -44,7 +44,7 @@
 
                 <EditText
                     android:id="@+id/etSearchBar"
-                    android:layout_width="230dp"
+                    android:layout_width="200dp"
                     android:layout_height="45dp"
                     android:background="@android:color/transparent"
                     android:ems="10"
@@ -52,10 +52,25 @@
                     android:inputType="text"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.8"
+                    app:layout_constraintHorizontal_bias="0.55"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintVertical_bias="0.4" />
+
+                <Button
+                    android:id="@+id/btn_empty"
+                    android:layout_width="23dp"
+                    android:layout_height="23dp"
+                    android:background="@drawable/baseline_close_24"
+                    android:backgroundTint="@color/medGrey"
+                    android:theme="@style/btn_empty"
+                    android:visibility="invisible"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.942"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.518" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
@@ -64,9 +79,9 @@
             android:id="@+id/tv_suggestion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Suggestions"
-            android:textSize="12sp"
+            android:layout_marginTop="20dp"
+            android:text="For you"
+            android:textSize="18sp"
             app:layout_constraintStart_toStartOf="@+id/seachbar"
             app:layout_constraintTop_toBottomOf="@+id/seachbar" />
 
@@ -75,7 +90,7 @@
             android:layout_width="300dp"
             android:layout_height="2dp"
             android:layout_marginTop="12dp"
-            android:background="@color/medGrey"
+            android:background="@color/lightGrey"
             app:layout_constraintEnd_toEndOf="@+id/seachbar"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="@+id/seachbar"
@@ -90,32 +105,6 @@
             app:layout_constraintStart_toStartOf="@+id/line_name">
         </androidx.cardview.widget.CardView>
 
-        <TextView
-            android:id="@+id/tv_frequently"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="9dp"
-            android:text="Frequently Search"
-            android:textSize="12sp"
-            app:layout_constraintBottom_toTopOf="@+id/line_frequently"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="@+id/line_frequently"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.998" />
-
-        <View
-            android:id="@+id/line_frequently"
-            android:layout_width="300dp"
-            android:layout_height="2dp"
-            android:background="@color/medGrey"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.495"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.736" />
-
         <ScrollView
             android:id="@+id/svSuggestions"
             android:layout_width="280dp"
@@ -126,10 +115,10 @@
             android:scrollbars="none"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.572"
+            app:layout_constraintHorizontal_bias="0.57"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.385" />
+            app:layout_constraintVertical_bias="0.39" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

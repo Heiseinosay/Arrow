@@ -37,6 +37,7 @@ android {
 }
 
 dependencies {
+
     // DRAG
     implementation 'com.google.android.material:material:1.11.0-alpha02'
 
@@ -48,11 +49,14 @@ dependencies {
     // ---
     // MapBox
     implementation 'com.mapbox.maps:android:10.15.0'
+
     // firebase --
     implementation(platform("com.google.firebase:firebase-bom:32.2.2"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-storage")
+    //implementation 'com.google.firebase:firebase-storage-ktx:20.3.0'
     // ---
     implementation 'androidx.core:core-ktx:1.8.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
