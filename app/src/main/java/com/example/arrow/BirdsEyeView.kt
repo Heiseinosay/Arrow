@@ -101,20 +101,10 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListene
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
 
-import com.mapbox.maps.plugin.animation.MapAnimationOptions
-import com.mapbox.maps.plugin.animation.flyTo
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.concurrent.thread
-import android.provider.Settings
-import androidx.appcompat.app.AlertDialog
-import com.mapbox.android.core.location.LocationEngineCallback
-import com.mapbox.android.core.location.LocationEngineProvider
-import com.mapbox.android.core.location.LocationEngineRequest
-import com.mapbox.android.core.location.LocationEngineResult
-import java.lang.Exception
-
 
 import com.mapbox.maps.plugin.attribution.attribution
 import com.mapbox.maps.plugin.compass.compass
@@ -756,7 +746,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         // CHECK IF INSIDE BOUNDS
         val userLocation = LatLng(latitude, longitude) // inside
         val isInside:Boolean = isUserLocationInsideBounds(userLocation)
-        Toast.makeText(this, "$isInside", Toast.LENGTH_SHORT).show()
 
         if (isInside) {
             val camera = CameraOptions.Builder()
@@ -768,6 +757,17 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 duration(3000) // Duration in milliseconds for the animation
             }
             mapboxMap?.flyTo(camera, animationOptions)
+
+        } else {
+            // Toast.makeText(this, "$isInside", Toast.LENGTH_SHORT).show()
+            val alertDialog = AlertDialog.Builder(this)
+                .setTitle("Unavailable")
+                .setMessage("You are outside the university.")
+                .setPositiveButton("Close") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+            alertDialog.show()
         }
 
 
@@ -784,14 +784,16 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-
             return null
         }
 
         locationEngine.requestLocationUpdates(request, locationCallback!!, mainLooper)
         locationEngine.getLastLocation(locationCallback!!)
 
-        return Point.fromLngLat(longitude, latitude)
+        if (isInside) {
+            return Point.fromLngLat(longitude, latitude)
+        }
+        return null
     }
 
 
@@ -834,7 +836,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         }
     }
 
-    fun viewProfileOverlay(){
+    fun viewProfileOverlay() {
         // Select Avatar Overlay
         val profileOverlay = findViewById<ConstraintLayout>(R.id.profile_overlay)
         ProfileObjects.profileOverlay = profileOverlay
@@ -943,7 +945,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         if (userLoc == null) return
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
-        thread(true,true) {
+        thread(true, true) {
             drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_01)
             drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_02)
             if (distanceOf(userLoc, destination) <= 0.1) {
@@ -957,8 +959,8 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 priority = Property.Entry.value or
                         Property.Exit.value or
                         if (ProfileObjects.role == "Employee") Property.Faculty.value else 0
-                navGraph.searchNearest(userLoc,priority,true)?.let {
-                    Log.i("FindRoute", "Priority: ${ it.property }")
+                navGraph.searchNearest(userLoc, priority, true)?.let {
+                    Log.i("FindRoute", "Priority: ${it.property}")
                     drawDirection(
                         mapboxMap?.getStyle()!!,
                         listOf(userLoc, it.loc),
@@ -980,8 +982,14 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 //                }
             }
             Log.i("FindRoute", "Priority: $priority")
-            Log.i("FindRouteParams", "Params: ${userLoc.longitude()} ${userLoc.latitude()}\n${destination.longitude()} ${destination.latitude()}")
-            Log.i("FindRouteParams", "${priority}  ${findFirst?.longitude()} ${findFirst?.latitude()}")
+            Log.i(
+                "FindRouteParams",
+                "Params: ${userLoc.longitude()} ${userLoc.latitude()}\n${destination.longitude()} ${destination.latitude()}"
+            )
+            Log.i(
+                "FindRouteParams",
+                "${priority}  ${findFirst?.longitude()} ${findFirst?.latitude()}"
+            )
             val routes = navGraph.requestRoute(
                 userLoc,
                 destination,
@@ -1000,13 +1008,17 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
                 lifecycleScope.launch {
                     mutex.withLock {
-                        Log.i("PrevPathingFindRoute", "$isPathingEnabled ${cDestination?.longitude()} ${cDestination?.latitude()}")
+                        Log.i(
+                            "PrevPathingFindRoute",
+                            "$isPathingEnabled ${cDestination?.longitude()} ${cDestination?.latitude()}"
+                        )
                         isPathingEnabled = true
                         cDestination = destination
                     }
                 }
             }
         }
+    }
 
     private fun layerButtonListener() {
         val focusLocation = findViewById<FloatingActionButton>(R.id.focusLocation)
