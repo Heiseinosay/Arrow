@@ -54,6 +54,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
 import com.example.arrow.utils.*
 import com.example.sqlitedatabase.DataBaseHandler
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
@@ -94,24 +96,12 @@ import com.mapbox.maps.plugin.locationcomponent.OnIndicatorBearingChangedListene
 import com.mapbox.maps.plugin.locationcomponent.OnIndicatorPositionChangedListener
 import com.mapbox.maps.plugin.locationcomponent.location
 
-
-import com.mapbox.maps.plugin.animation.MapAnimationOptions
-import com.mapbox.maps.plugin.animation.flyTo
-
 import com.mapbox.maps.plugin.attribution.attribution
 import com.mapbox.maps.plugin.compass.compass
 import com.mapbox.maps.plugin.logo.logo
 import com.mapbox.maps.plugin.scalebar.scalebar
 
-import android.provider.Settings
-import androidx.appcompat.app.AlertDialog
-
-import com.mapbox.android.core.location.LocationEngineCallback
-import com.mapbox.android.core.location.LocationEngineProvider
-import com.mapbox.android.core.location.LocationEngineRequest
-import com.mapbox.android.core.location.LocationEngineResult
 import java.lang.Exception
-
 
 
 class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
@@ -313,7 +303,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         bottomSheet = findViewById(R.id.sheet)
 
         BottomSheetBehavior.from(bottomSheet).apply {
-            peekHeight = 435
+            peekHeight = 410
             this.state = BottomSheetBehavior.STATE_COLLAPSED
         }
 
@@ -374,7 +364,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
 
-
         reqPermissionLauncher =
             registerForActivityResult(
                 ActivityResultContracts.RequestMultiplePermissions()
@@ -396,6 +385,14 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         modBuiltinUI()
         onMapReady()
         layerButtonListener()
+    }
+
+    fun isUserLocationInsideBounds(userLocation: LatLng): Boolean {
+        val southwest = LatLng(14.59990, 120.98452)
+        val northeast = LatLng(14.60415, 120.99466)
+        val bounds = LatLngBounds.Builder().include(southwest).include(northeast).build()
+        // Toast.makeText(this, "$userLocation", Toast.LENGTH_SHORT).show()
+        return bounds.contains(userLocation)
     }
 
     private fun modBuiltinUI() {
@@ -459,7 +456,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     // SEARCH ANIMATION
     @SuppressLint("Range")
     private fun searchAnimate(searchValue: String) {
-
         // FLOOR ID'S
         val tvGroundFloor = findViewById<TextView>(R.id.groundFloor)
         val tvSecondFloor = findViewById<TextView>(R.id.secondFloor)
@@ -618,11 +614,11 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             this.locationPuck = LocationPuck2D(
                 bearingImage = AppCompatResources.getDrawable(
                     this@BirdsEyeView,
-                    R.drawable.arrowvector,
+                    R.drawable.explore_selected,
                 ),
                 shadowImage = AppCompatResources.getDrawable(
                     this@BirdsEyeView,
-                    R.drawable.arrowvector,
+                    R.drawable.explore_selected,
                 ),
                 scaleExpression = interpolate {
                     linear()
@@ -709,15 +705,22 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             }
         }
 
-        val camera = CameraOptions.Builder()
-            .center(Point.fromLngLat(longitude,latitude))
-            .zoom(22.0)
-            .bearing(0.0)
-            .build()
-        val animationOptions = MapAnimationOptions.mapAnimationOptions {
-            duration(3000) // Duration in milliseconds for the animation
+        // CHECK IF INSIDE BOUNDS
+        val userLocation = LatLng(latitude, longitude) // inside
+        val isInside:Boolean = isUserLocationInsideBounds(userLocation)
+        Toast.makeText(this, "$isInside", Toast.LENGTH_SHORT).show()
+
+        if (isInside) {
+            val camera = CameraOptions.Builder()
+                .center(Point.fromLngLat(longitude,latitude))
+                .zoom(22.0)
+                .bearing(0.0)
+                .build()
+            val animationOptions = MapAnimationOptions.mapAnimationOptions {
+                duration(3000) // Duration in milliseconds for the animation
+            }
+            mapboxMap?.flyTo(camera, animationOptions)
         }
-        mapboxMap?.flyTo(camera, animationOptions)
 
         val request = LocationEngineRequest.Builder(1000L)
             .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -737,6 +740,8 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
         locationEngine.requestLocationUpdates(request, locationCallback!!, mainLooper)
         locationEngine.getLastLocation(locationCallback!!)
+
+
     }
 
 
@@ -910,15 +915,15 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             1 -> {
                 createPolyline(polylineAnnotationManagerGastam, Coordinates.gastamToLualhati, 0)
                 createPolyline(polylineAnnotationManager, Coordinates.firstFloor, 1)
-                Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
+                // Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
             }
             9 -> {
                 createPolyline(polylineAnnotationManager,Coordinates.eightFloor, 9)
-                Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
+                // Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
             }
             8 -> {
                 createPolyline(polylineAnnotationManager, Coordinates.eightFloor, 8)
-                Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
+                // Toast.makeText(this, "Select a specific line to show Panoramic View.", Toast.LENGTH_SHORT).show()
             }
             else -> Toast.makeText(this, "Exploration Line in this floor is not yet available.", Toast.LENGTH_SHORT).show()
         }
