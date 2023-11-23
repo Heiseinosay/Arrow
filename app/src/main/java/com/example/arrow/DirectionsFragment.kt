@@ -117,6 +117,7 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
         var findFirst: Point? = null
         var destination: Point? = null
         val db = dbHelper.readableDatabase
+        val userLoc = context.checkLocationEnabled()
 
         fun getStringFrom(query: String): String {
             val res = db.rawQuery(query, null)
@@ -135,10 +136,10 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
                 db.close()
                 return
             }
-            findFirst = toROOMSPoint(ret)
+            findFirst = toROOMSPoint(ret,userLoc)
         }
         else {
-            context.checkLocationEnabled().let {
+            userLoc?.let {
                 findFirst = null
             }
         }
@@ -148,8 +149,8 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
             db.close()
             return
         }
-        if (findFirst != null) destination = toROOMSPoint(ret,findFirst)
-        else destination = toROOMSPoint(ret)
+        if (findFirst != null) destination = toROOMSPoint(ret,userLoc,findFirst)
+        else destination = toROOMSPoint(ret,userLoc)
 
         db.close()
         if (destination == null) return
@@ -158,10 +159,9 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
         context.findRoute(findFirst, destination)
     }
 
-    private fun toROOMSPoint(s: String, cmp: Point? = null): Point? {
+    private fun toROOMSPoint(s: String,userLoc: Point?, cmp: Point? = null): Point? {
         val indexes = s.split(',')
         Log.i("DirectionsFragmentIndexes", "" + indexes)
-        val userLoc = context.checkLocationEnabled()
         if (userLoc == null) {
             Log.w(
                 "DirectionsFragment",
