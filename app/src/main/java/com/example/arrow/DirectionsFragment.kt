@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteDatabase
 import com.example.arrow.utils.ROOMS
 import com.example.arrow.utils.distanceOf
 import android.os.Bundle
+import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -18,12 +19,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.children
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.example.sqlitedatabase.DataBaseHandler
 import com.mapbox.geojson.Point
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment_directions) {
     private lateinit var etInputs: List<EditText>
@@ -35,11 +32,12 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
     private lateinit var vSuggestLine: View
 
     private lateinit var btSwitchLoc: Button
-    private lateinit var btCancel: Button
+    private lateinit var tvCancel: TextView
 
     val YOUR_LOCATION = "Your Location"
     val CURR_LOC = "CurrLoc"
     val DEST_LOC = "DestLoc"
+    val IS_PATH_ENABLE =  "IsPathEnable"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -50,7 +48,7 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         )
 
         btSwitchLoc = view.findViewById(R.id.btSwitchLoc)
-        btCancel = view.findViewById(R.id.btCancel)
+        tvCancel = view.findViewById(R.id.tvCancel)
         val svDirectionSuggestions: ScrollView = view.findViewById(R.id.svDirectionSuggestions)
 
         tvDirectionSuggestion = view.findViewById(R.id.tvDirectionSuggestion)
@@ -79,6 +77,9 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
             })
             ev.setOnFocusChangeListener{ v: View, hasFocus: Boolean ->
                 focusChangedListener(v,hasFocus)
+                val db = dbHelper.readableDatabase
+                suggestion(db, ev.text, id)
+                db.close()
             }
             ev.setOnEditorActionListener { v, actionId, event ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -95,14 +96,18 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
             etInputs[0].setText(requireArguments().getString(CURR_LOC,""))
             etInputs[1].setText(requireArguments().getString(DEST_LOC,""))
             svDSLinearLayout.removeAllViews()
+            if (requireArguments().getString(IS_PATH_ENABLE).toBoolean()) {
+                tvCancel.visibility = View.VISIBLE
+            }
         }
 
-        btCancel.setOnClickListener{
-            Log.i("DirectionFragmentButton", "cancel")
-            btCancel.visibility = View.INVISIBLE
-            btSwitchLoc.visibility = View.VISIBLE
+        tvCancel.setOnClickListener{
+            tvCancel.visibility = View.INVISIBLE
             etInputs[0].setText("")
             etInputs[1].setText("")
+            context.disablePath()
+            Log.i("DirectionFragmentButton", "cancel ${context.isPathingEnabled}")
+            context.updateDirFragBundle(IS_PATH_ENABLE,context.isPathingEnabled.toString())
         }
 
         btSwitchLoc.setOnClickListener{
@@ -139,7 +144,10 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
 
         fun getStringFrom(query: String): String {
             val res = db.rawQuery(query, null)
-            if (res == null || res.count == 0) return ""
+            if (res == null || res.count == 0) {
+                res?.close()
+                return ""
+            }
             res.moveToNext()
             val columnIndex = res.getColumnIndex("stIndex")
             val ret = res.getString(columnIndex)
@@ -156,11 +164,7 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
             }
             findFirst = toROOMSPoint(ret,userLoc)
         }
-        else {
-            userLoc?.let {
-                findFirst = null
-            }
-        }
+
         Log.i("DestinationFragmentFindPath", "sbDestLoc: $sbDestLoc")
         val ret = getStringFrom("SELECT * FROM MapIndex WHERE RoomID LIKE '$sbDestLoc'")
         if (ret.isEmpty()) {
@@ -174,14 +178,18 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         if (destination == null) return
         Log.i("DirectionsFragmentFindPath", "$findFirst $destination")
 
+        val handler = Handler(requireContext().mainLooper)
         context.findRoute(findFirst, destination) { isPathEnabled ->
             Log.i("FindRoute", "Callable")
-            if (isPathEnabled) {
-                btCancel.visibility = View.VISIBLE
-                btSwitchLoc.visibility = View.INVISIBLE
-            } else {
-                btCancel.visibility = View.INVISIBLE
-                btSwitchLoc.visibility = View.VISIBLE
+            handler.post {
+                context.updateDirFragBundle(IS_PATH_ENABLE,isPathEnabled.toString())
+                if (isPathEnabled) {
+                    Log.i("FindRoute", "Callable show cancel")
+                    tvCancel.visibility = View.VISIBLE
+                } else {
+                    Log.i("FindRoute", "Callable hide cancel")
+                    tvCancel.visibility = View.INVISIBLE
+                }
             }
         }
     }
@@ -285,9 +293,6 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         while (dbIndexMap.moveToNext()) {
             stIndexMap.add( dbIndexMap.getString(columnstIndex) )
             names.add( dbIndexMap.getString(columnRoomID) )
-        }
-        assert(stIndexMap.size == names.size) {
-            "Must be same size"
         }
 
         for (i in 0 until stIndexMap.size) {

@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:id="@+id/fragment_directions"
     tools:context=".DirectionsFragment">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -22,21 +23,10 @@
             app:layout_constraintTop_toBottomOf="@+id/tvDirectionSuggestion"
             app:layout_constraintVertical_bias="0.0" />
 
-        <TextView
-            android:id="@+id/tvDirectionSuggestion"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="180dp"
-            android:text="Suggestions"
-            android:textSize="12sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.16"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="30dp"
             android:layout_height="115dp"
+            android:layout_marginTop="15dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.041"
@@ -88,7 +78,7 @@
             android:id="@+id/btSwitchLoc"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_marginTop="80dp"
+            android:layout_marginTop="90dp"
             android:layout_marginBottom="621dp"
             android:background="@drawable/swap_vert"
             android:backgroundTint="@color/black"
@@ -96,27 +86,14 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.958"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btCancel"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginTop="80dp"
-            android:layout_marginBottom="621dp"
-            android:background="@drawable/baseline_close_24"
-            android:backgroundTint="@color/black"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.958"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cvCurrentLocation"
             android:layout_width="300dp"
             android:layout_height="50dp"
+            android:layout_marginTop="15dp"
             android:backgroundTint="@color/lightGrey"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp"
@@ -154,7 +131,7 @@
             android:id="@+id/cvDestinationSearch"
             android:layout_width="300dp"
             android:layout_height="50dp"
-            android:layout_marginTop="75dp"
+            android:layout_marginTop="90dp"
             android:backgroundTint="@color/lightGrey"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp"
@@ -201,7 +178,39 @@
             app:layout_constraintHorizontal_bias="0.495"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.597" />
+            app:layout_constraintVertical_bias="0.653" />
+
+        <TextView
+            android:id="@+id/tvDirectionSuggestion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="200dp"
+            android:text="Suggestions"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.16"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="295dp"
+            android:layout_marginTop="21dp"
+            android:layout_marginEnd="60dp"
+            android:layout_marginBottom="7dp"
+            android:text="Cancel"
+            android:textColor="@color/darkRed"
+            android:textSize="18sp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@+id/cvCurrentLocation"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.493"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

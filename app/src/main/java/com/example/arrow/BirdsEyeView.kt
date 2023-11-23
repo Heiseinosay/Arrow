@@ -8,6 +8,7 @@ import android.animation.AnimatorSet
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 
 import android.content.res.Resources
@@ -940,18 +941,38 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     fun updateDirFragBundle(key: String, value: String) {
         destFragBundle.putString(key, value)
     }
+    fun disablePath() {
+        lifecycleScope.launch {
+            mutex.withLock {
+                isPathingEnabled = false
+                cDestination = null
+            }
+        }
+        for (i in 0 until navGraph.maxRouteSize)
+        drawDirection(
+            mapboxMap?.getStyle()!!,
+            listOf(),
+            if (i%2==0) GEO_SOURCE_ID_01 else GEO_SOURCE_ID_02
+        )
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+    }
     fun findRoute(findFirst: Point?, destination: Point,callable: (Boolean)-> Unit = { _ -> }) {
         val userLoc = requestSingleLocationUpdate()
         if (userLoc == null) return
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
         thread(true, true) {
+            var fFirst = findFirst
             drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_01)
             drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_02)
             if (distanceOf(userLoc, destination) <= 0.1) {
-                isPathingEnabled = false
-                cDestination = null
-                callable(isPathingEnabled)
+                lifecycleScope.launch {
+                    mutex.withLock {
+                        isPathingEnabled = false
+                        cDestination = null
+                        callable(isPathingEnabled)
+                    }
+                }
                 return@thread
             }
             Log.i("FindRoute", "Dest: $destination")
@@ -962,26 +983,40 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                         if (ProfileObjects.role == "Employee") Property.Faculty.value else 0
                 navGraph.searchNearest(userLoc, priority, true)?.let {
                     Log.i("FindRoute", "Priority: ${it.property}")
-                    drawDirection(
-                        mapboxMap?.getStyle()!!,
-                        listOf(userLoc, it.loc),
-                        GEO_SOURCE_ID_01
-                    )
-                    lifecycleScope.launch {
-                        mutex.withLock {
-                            isPathingEnabled = true
-                            cDestination = destination
-                            callable(isPathingEnabled)
-                        }
+                    val elev1_2 = LatLngBounds.Builder()
+                        .include(LatLng(14.60269424107424641, 120.98934008317019106))
+                        .include(LatLng(14.60278121890145897, 120.9894757313287954))
+                        .build()
+                    val elev3 = LatLngBounds.Builder()
+                        .include(LatLng(14.60272661944612516, 120.9888287063550365))
+                        .include(LatLng(14.60276253339217511, 120.98896064170088493))
+                        .build()
+                    val p = LatLng(it.loc.latitude(),it.loc.longitude())
+                    val u = LatLng(userLoc.latitude(),userLoc.longitude())
+                    if (
+                        elev1_2.contains(p) && elev1_2.contains(u) ||
+                        elev3.contains(p) && elev3.contains(u)
+                    ) {
+                          findViewById<TextView>(R.id.eightFloor).performClick()
+                          priority = 0
+                          fFirst = it.loc
                     }
-                    return@thread
+                    else {
+                        drawDirection(
+                            mapboxMap?.getStyle()!!,
+                            listOf(userLoc, it.loc),
+                            GEO_SOURCE_ID_01
+                        )
+                        lifecycleScope.launch {
+                            mutex.withLock {
+                                isPathingEnabled = true
+                                cDestination = destination
+                                callable(isPathingEnabled)
+                            }
+                        }
+                        return@thread
+                    }
                 }
-                // can't test outside of UE
-//                navGraph.searchNearest(userLoc,priority)?.let {
-//                    if (distanceOf(userLoc, it.loc) <= 0.5) {
-//                        findViewById<TextView>(R.id.eightFloor).performClick()
-//                    }
-//                }
             }
             Log.i("FindRoute", "Priority: $priority")
             Log.i(
@@ -996,7 +1031,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 userLoc,
                 destination,
                 priority,
-                findFirst
+                fFirst
             )
             Log.i(TAG, "Routes size " + routes.size)
             if (routes.isNotEmpty()) {
