@@ -15,6 +15,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -24,7 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.layout.fragment_directions) {
+class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment_directions) {
     private lateinit var etInputs: List<EditText>
     private lateinit var svDSLinearLayout: LinearLayout
 
@@ -32,6 +33,9 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
 
     private lateinit var tvDirectionSuggestion: TextView
     private lateinit var vSuggestLine: View
+
+    private lateinit var btSwitchLoc: Button
+    private lateinit var btCancel: Button
 
     val YOUR_LOCATION = "Your Location"
     val CURR_LOC = "CurrLoc"
@@ -45,7 +49,8 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
             view.findViewById(R.id.etDestinationSearchbar)
         )
 
-        val btSwitchLoc: Button = view.findViewById(R.id.btSwitchLoc)
+        btSwitchLoc = view.findViewById(R.id.btSwitchLoc)
+        btCancel = view.findViewById(R.id.btCancel)
         val svDirectionSuggestions: ScrollView = view.findViewById(R.id.svDirectionSuggestions)
 
         tvDirectionSuggestion = view.findViewById(R.id.tvDirectionSuggestion)
@@ -92,7 +97,20 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
             svDSLinearLayout.removeAllViews()
         }
 
+        btCancel.setOnClickListener{
+            Log.i("DirectionFragmentButton", "cancel")
+            btCancel.visibility = View.INVISIBLE
+            btSwitchLoc.visibility = View.VISIBLE
+            etInputs[0].setText("")
+            etInputs[1].setText("")
+        }
+
         btSwitchLoc.setOnClickListener{
+            Log.i("DirectionFragmentButton", "Switch")
+            if (etInputs[0].text.toString() == YOUR_LOCATION) {
+                Toast.makeText(requireContext(), "Cannot Switch Location", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val t = etInputs[0].text
             etInputs[0].text = etInputs[1].text
             etInputs[1].text = t
@@ -156,7 +174,16 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
         if (destination == null) return
         Log.i("DirectionsFragmentFindPath", "$findFirst $destination")
 
-        context.findRoute(findFirst, destination)
+        context.findRoute(findFirst, destination) { isPathEnabled ->
+            Log.i("FindRoute", "Callable")
+            if (isPathEnabled) {
+                btCancel.visibility = View.VISIBLE
+                btSwitchLoc.visibility = View.INVISIBLE
+            } else {
+                btCancel.visibility = View.INVISIBLE
+                btSwitchLoc.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun toROOMSPoint(s: String,userLoc: Point?, cmp: Point? = null): Point? {

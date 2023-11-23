@@ -373,7 +373,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         }
         cvNavDirection.setOnClickListener{
-            val dirFrag = DirectionsFragment(this, mutex)
+            val dirFrag = DirectionsFragment(this)
             dirFrag.arguments = destFragBundle
             changeFragment(dirFrag, ivDirection, tvDirection,
                 listOf(ivProfile, ivExplore), listOf(tvProfile, tvExplore))
@@ -940,7 +940,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     fun updateDirFragBundle(key: String, value: String) {
         destFragBundle.putString(key, value)
     }
-    fun findRoute(findFirst: Point?, destination: Point) {
+    fun findRoute(findFirst: Point?, destination: Point,callable: (Boolean)-> Unit = { _ -> }) {
         val userLoc = requestSingleLocationUpdate()
         if (userLoc == null) return
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
@@ -951,6 +951,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             if (distanceOf(userLoc, destination) <= 0.1) {
                 isPathingEnabled = false
                 cDestination = null
+                callable(isPathingEnabled)
                 return@thread
             }
             Log.i("FindRoute", "Dest: $destination")
@@ -970,6 +971,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                         mutex.withLock {
                             isPathingEnabled = true
                             cDestination = destination
+                            callable(isPathingEnabled)
                         }
                     }
                     return@thread
@@ -1014,6 +1016,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                         )
                         isPathingEnabled = true
                         cDestination = destination
+                        callable(isPathingEnabled)
                     }
                 }
             }
