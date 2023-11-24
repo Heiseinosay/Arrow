@@ -382,14 +382,17 @@ class NavigationGraph(base: Node) {
     ): List<List<Point>> {
         if (customStart == null){
             val nStart = searchNearest(origin, priority)
-            // assert(nStart != null)
-            if (nStart != null)
+            if (nStart != null) {
+                Log.i("NavigationGraph", "searchNearest ${nStart.loc.longitude()}, ${nStart.loc.latitude()}")
                 start = nStart
+            }
         }
         else {
             val nStart = searchFor(customStart)
             if (nStart != null)
                 start = nStart
+            else
+                return requestRoute(origin,destination,priority)
         }
 
         val routes: MutableList<Pair< Double,List<Node> >> = mutableListOf()

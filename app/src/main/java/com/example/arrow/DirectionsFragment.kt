@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteDatabase
 import com.example.arrow.utils.ROOMS
 import com.example.arrow.utils.distanceOf
 import android.os.Bundle
+import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -15,16 +16,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.children
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.example.sqlitedatabase.DataBaseHandler
 import com.mapbox.geojson.Point
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
-class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.layout.fragment_directions) {
+class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment_directions) {
     private lateinit var etInputs: List<EditText>
     private lateinit var svDSLinearLayout: LinearLayout
 
@@ -33,9 +31,13 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
     private lateinit var tvDirectionSuggestion: TextView
     private lateinit var vSuggestLine: View
 
+    private lateinit var btSwitchLoc: Button
+    private lateinit var tvCancel: TextView
+
     val YOUR_LOCATION = "Your Location"
     val CURR_LOC = "CurrLoc"
     val DEST_LOC = "DestLoc"
+    val IS_PATH_ENABLE =  "IsPathEnable"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -45,7 +47,8 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
             view.findViewById(R.id.etDestinationSearchbar)
         )
 
-        val btSwitchLoc: Button = view.findViewById(R.id.btSwitchLoc)
+        btSwitchLoc = view.findViewById(R.id.btSwitchLoc)
+        tvCancel = view.findViewById(R.id.tvCancel)
         val svDirectionSuggestions: ScrollView = view.findViewById(R.id.svDirectionSuggestions)
 
         tvDirectionSuggestion = view.findViewById(R.id.tvDirectionSuggestion)
@@ -74,6 +77,9 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
             })
             ev.setOnFocusChangeListener{ v: View, hasFocus: Boolean ->
                 focusChangedListener(v,hasFocus)
+                val db = dbHelper.readableDatabase
+                suggestion(db, ev.text, id)
+                db.close()
             }
             ev.setOnEditorActionListener { v, actionId, event ->
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -90,9 +96,26 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
             etInputs[0].setText(requireArguments().getString(CURR_LOC,""))
             etInputs[1].setText(requireArguments().getString(DEST_LOC,""))
             svDSLinearLayout.removeAllViews()
+            if (requireArguments().getString(IS_PATH_ENABLE).toBoolean()) {
+                tvCancel.visibility = View.VISIBLE
+            }
+        }
+
+        tvCancel.setOnClickListener{
+            tvCancel.visibility = View.INVISIBLE
+            etInputs[0].setText("")
+            etInputs[1].setText("")
+            context.disablePath()
+            Log.i("DirectionFragmentButton", "cancel ${context.isPathingEnabled}")
+            context.updateDirFragBundle(IS_PATH_ENABLE,context.isPathingEnabled.toString())
         }
 
         btSwitchLoc.setOnClickListener{
+            Log.i("DirectionFragmentButton", "Switch")
+            if (etInputs[0].text.toString() == YOUR_LOCATION) {
+                Toast.makeText(requireContext(), "Cannot Switch Location", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val t = etInputs[0].text
             etInputs[0].text = etInputs[1].text
             etInputs[1].text = t
@@ -117,10 +140,14 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
         var findFirst: Point? = null
         var destination: Point? = null
         val db = dbHelper.readableDatabase
+        val userLoc = context.checkLocationEnabled()
 
         fun getStringFrom(query: String): String {
             val res = db.rawQuery(query, null)
-            if (res == null || res.count == 0) return ""
+            if (res == null || res.count == 0) {
+                res?.close()
+                return ""
+            }
             res.moveToNext()
             val columnIndex = res.getColumnIndex("stIndex")
             val ret = res.getString(columnIndex)
@@ -135,33 +162,41 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
                 db.close()
                 return
             }
-            findFirst = toROOMSPoint(ret)
+            findFirst = toROOMSPoint(ret,userLoc)
         }
-        else {
-            context.checkLocationEnabled().let {
-                findFirst = null
-            }
-        }
+
         Log.i("DestinationFragmentFindPath", "sbDestLoc: $sbDestLoc")
         val ret = getStringFrom("SELECT * FROM MapIndex WHERE RoomID LIKE '$sbDestLoc'")
         if (ret.isEmpty()) {
             db.close()
             return
         }
-        if (findFirst != null) destination = toROOMSPoint(ret,findFirst)
-        else destination = toROOMSPoint(ret)
+        if (findFirst != null) destination = toROOMSPoint(ret,userLoc,findFirst)
+        else destination = toROOMSPoint(ret,userLoc)
 
         db.close()
         if (destination == null) return
         Log.i("DirectionsFragmentFindPath", "$findFirst $destination")
 
-        context.findRoute(findFirst, destination)
+        val handler = Handler(requireContext().mainLooper)
+        context.findRoute(findFirst, destination) { isPathEnabled ->
+            Log.i("FindRoute", "Callable")
+            handler.post {
+                context.updateDirFragBundle(IS_PATH_ENABLE,isPathEnabled.toString())
+                if (isPathEnabled) {
+                    Log.i("FindRoute", "Callable show cancel")
+                    tvCancel.visibility = View.VISIBLE
+                } else {
+                    Log.i("FindRoute", "Callable hide cancel")
+                    tvCancel.visibility = View.INVISIBLE
+                }
+            }
+        }
     }
 
-    private fun toROOMSPoint(s: String, cmp: Point? = null): Point? {
+    private fun toROOMSPoint(s: String,userLoc: Point?, cmp: Point? = null): Point? {
         val indexes = s.split(',')
         Log.i("DirectionsFragmentIndexes", "" + indexes)
-        val userLoc = context.checkLocationEnabled()
         if (userLoc == null) {
             Log.w(
                 "DirectionsFragment",
@@ -258,9 +293,6 @@ class DirectionsFragment(val context: BirdsEyeView, mutex: Mutex) : Fragment(R.l
         while (dbIndexMap.moveToNext()) {
             stIndexMap.add( dbIndexMap.getString(columnstIndex) )
             names.add( dbIndexMap.getString(columnRoomID) )
-        }
-        assert(stIndexMap.size == names.size) {
-            "Must be same size"
         }
 
         for (i in 0 until stIndexMap.size) {
