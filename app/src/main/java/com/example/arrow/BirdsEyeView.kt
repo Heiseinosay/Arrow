@@ -91,7 +91,6 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
-import com.mapbox.maps.plugin.annotation.generated.PointAnnotation
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
@@ -130,8 +129,10 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private lateinit var fragmentManager: FragmentManager
     private var startValue:Float = 0.0f
     private var searchValue:String = ""
-    lateinit var navGraph: NavigationGraph
+    lateinit var navGraphLB: NavigationGraph
+    lateinit var navGraphGround: NavigationGraph
     lateinit var vDirectionInfo: CardView
+    lateinit var allTextViews: List<TextView>
 
     val destFragBundle = Bundle()
     var isPathingEnabled = false
@@ -198,7 +199,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             scrollView.fullScroll(ScrollView.FOCUS_DOWN)
         }
 
-        val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
+        allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
 
         for (i in allTextViews.indices) {
             val textView = allTextViews[i]
@@ -417,8 +418,11 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         mapView = findViewById(R.id.mapView)
         mapboxMap = mapView?.getMapboxMap()
 
-        navGraph = setupNavigationGraph()
-        navGraph.maxRouteSize = 1
+        navGraphLB = setupLBNavigationGraph()
+        navGraphLB.maxRouteSize = 1
+
+        navGraphGround = setupLBGroundNavigationGraph()
+        navGraphGround.maxRouteSize = 1
 
         vDirectionInfo = findViewById(R.id.vDirectionInfo)
         modBuiltinUI()
@@ -955,7 +959,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         reqPermissionLauncher.launch(PERMISSIONS)
     }
 
-
     fun updateDirFragBundle(key: String, value: String) {
         destFragBundle.putString(key, value)
     }
@@ -966,7 +969,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 cDestination = null
             }
         }
-        for (i in 0 until navGraph.maxRouteSize)
+        for (i in 0 until navGraphLB.maxRouteSize)
             drawDirection(
                 mapboxMap?.getStyle()!!,
                 listOf(),
@@ -1047,7 +1050,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 priority = Property.Entry.value or
                         Property.Exit.value or
                         if (ProfileObjects.role == "Employee") Property.Faculty.value else 0
-                navGraph.searchNearest(userLoc, priority, true)?.let {
+                navGraphLB.searchNearest(userLoc, priority, true)?.let {
                     Log.i("FindRoute", "Priority: ${it.property}")
                     val elev1_2 = LatLngBounds.Builder()
                         .include(LatLng(14.60269424107424641, 120.98934008317019106))
@@ -1063,12 +1066,12 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                         elev1_2.contains(p) && elev1_2.contains(u) ||
                         elev3.contains(p) && elev3.contains(u)
                     ) {
-                          if (floor == 8) findViewById<TextView>(R.id.eightFloor).performClick()
-                          else if (floor == 9) findViewById<TextView>(R.id.ninethFloor).performClick()
+                          allTextViews[floor-1].performClick()
                           priority = 0
                           fFirst = it.loc
                     }
                     else if (lbMapLayers?.currFloor == 8 || lbMapLayers?.currFloor == 9 || lbMapLayers?.currFloor == 1) {
+                        val ROOMS = getROOMS()
                         priority = 0
                         nDest = ROOMS[41]
                         var closest = distanceOf(userLoc, ROOMS[41])
@@ -1115,12 +1118,23 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 "FindRouteParams",
                 "${priority}  ${findFirst?.longitude()} ${findFirst?.latitude()}"
             )
-            val routes = navGraph.requestRoute(
-                userLoc,
-                if (nDest != null) nDest!! else destination,
-                priority,
-                fFirst
-            )
+            var routes: List<List<Point>> = listOf()
+            if (lbMapLayers?.currFloor == 1) {
+                routes = navGraphGround.requestRoute(
+                    userLoc,
+                    if (nDest != null) nDest!! else destination,
+                    priority,
+                    fFirst
+                )
+            }
+            else {
+                routes = navGraphLB.requestRoute(
+                    userLoc,
+                    if (nDest != null) nDest!! else destination,
+                    priority,
+                    fFirst
+                )
+            }
             Log.i(TAG, "Routes size " + routes.size)
             if (routes.isNotEmpty()) {
                 var c = 0

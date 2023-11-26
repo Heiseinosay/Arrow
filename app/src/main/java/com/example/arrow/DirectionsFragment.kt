@@ -1,7 +1,7 @@
 package com.example.arrow
 
 import android.database.sqlite.SQLiteDatabase
-import com.example.arrow.utils.ROOMS
+import com.example.arrow.utils.getROOMS
 import com.example.arrow.utils.distanceOf
 import android.os.Bundle
 import android.os.Handler
@@ -157,9 +157,12 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
             return Pair(ret, floor)
         }
 
+        var originFloor = -1
         if (sbCurrLoc != YOUR_LOCATION) {
             Log.i("DestinationFragmentFindPath", "sbCurrLoc: $sbCurrLoc")
-            val (ret, _) = getStringFrom("SELECT * FROM MapIndex join coords on MapIndex.RoomID = coords.RoomID WHERE MapIndex.RoomID LIKE '$sbCurrLoc'")
+            val pret = getStringFrom("SELECT * FROM MapIndex join coords on MapIndex.RoomID = coords.RoomID WHERE MapIndex.RoomID LIKE '$sbCurrLoc'")
+            val ret = pret.first
+            originFloor = pret.second
             if (ret.isEmpty()) {
                 db.close()
                 return
@@ -175,6 +178,7 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         }
         if (findFirst != null) destination = toROOMSPoint(ret,userLoc,findFirst)
         else destination = toROOMSPoint(ret,userLoc)
+        if (originFloor != floor && originFloor >= 1 && originFloor <= 10) context.allTextViews[originFloor-1].performClick()
 
         db.close()
         if (destination == null) return
@@ -208,6 +212,7 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         }
         var closest: Point? = null
         var closestDist = 1000.0
+        val ROOMS = getROOMS()
         for (i in indexes) {
             i.toIntOrNull()?.let {
                 Log.i("DirectionsFragment", "New dist ${ distanceOf(userLoc, ROOMS[it]) }")

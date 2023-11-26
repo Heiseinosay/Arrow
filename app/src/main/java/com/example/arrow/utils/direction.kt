@@ -11,6 +11,12 @@ import com.mapbox.maps.extension.style.layers.generated.LineLayer
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.getSourceAs
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 val TAG = "NAVIGATIONGRAPH"
 val GEO_SOURCE_ID_01 = "DirectionSource01"
@@ -20,7 +26,7 @@ val DIRECTION_LAYER_ID_02 = "DirectionLayerSource02"
 //val GEO_SOURCE_ID_03 = "DirectionSource03"
 //val DIRECTION_LAYER_ID_03 = "DirectionLayerSource03"
 
-val POINTS = listOf(
+fun getPOINTS(): List<Point> = listOf(
 Point.fromLngLat(120.98936069082802192, 14.60273546261073285), // elevator
 Point.fromLngLat(120.98938236105199451, 14.60277880959188757), // elevator
 
@@ -97,9 +103,11 @@ Point.fromLngLat(120.98890562875234878, 14.60278828760344894), // 56
 Point.fromLngLat(120.98896064170088493, 14.60276253339217511),
 Point.fromLngLat(120.98899448041311189, 14.60274669185942642),
 Point.fromLngLat(120.98904972806279545, 14.60272082776834957), // 59
+Point.fromLngLat(120.98892445578336208, 14.60293516497389632),
+Point.fromLngLat(120.98894764966237858, 14.60287795809444944),
 )
 
-val ROOMS = listOf(
+fun getROOMS(): List<Point> = listOf(
 // 801
 Point.fromLngLat(120.98897628824259698, 14.60303867951060042), // 0
 Point.fromLngLat(120.98901122138191511, 14.60302232839303116),
@@ -189,21 +197,26 @@ Point.fromLngLat(120.98887054156791976, 14.60286244285996382),
 Point.fromLngLat(120.98889162774632666, 14.60290413781859797),
 // faculty room
 Point.fromLngLat(120.98886011501883786, 14.60284182582272194), // 58
+// ground cr male - female
+Point.fromLngLat(120.98962533458541202, 14.60274449181420486),
+Point.fromLngLat(120.9896667491501745, 14.60272510365884102),
+// gate
+Point.fromLngLat(120.98887403058205336, 14.60295913993368977) // 61
 )
 
 fun distanceOf(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
     // calc the distance between two points
     // using haverson formula
-    var lat1 = Math.toRadians(lat1);
-    var lon1 = Math.toRadians(lon1);
-    var lat2 = Math.toRadians(lat2);
-    var lon2 = Math.toRadians(lon2);
+    val lat1 = Math.toRadians(lat1);
+    val lon1 = Math.toRadians(lon1);
+    val lat2 = Math.toRadians(lat2);
+    val lon2 = Math.toRadians(lon2);
 
-    var dlat = lat2 - lat1;
-    var dlon = lon2 - lon1;
-    var a = Math.pow( Math.sin(dlat/2), 2.0 ) + Math.cos(lat1) * Math.cos(lat2) * Math.pow( Math.sin(dlon/2), 2.0 );
-    var c = 2 * Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-    return Math.abs((6371 * c) * 1000)
+    val dlat = lat2 - lat1;
+    val dlon = lon2 - lon1;
+    val a = sin(dlat / 2).pow(2.0) + cos(lat1) * cos(lat2) * sin(dlon / 2).pow(2.0);
+    val c = 2 * atan2(sqrt(a), sqrt(1-a));
+    return abs((6371 * c) * 1000)
 }
 
 fun distanceOf(p1: Point, p2: Point): Double
@@ -227,7 +240,7 @@ data class Node(val loc: Point, val property: Int = 0) {
 
      fun debug(): String {
          val size = this.neighbors.size
-         var l = this.neighbors.toString()
+         val l = this.neighbors.toString()
          return "{\nlocation: ${this.toString()},\nsize: $size,\n $l\n}"
      }
 
@@ -432,9 +445,11 @@ class NavigationGraph(base: Node) {
     }
 }
 
-fun setupNavigationGraph(): NavigationGraph {
+fun setupLBNavigationGraph(): NavigationGraph {
     // assert(false) { "Apply emergency property" }
     // Log.i("setupNavigationGraph","" + POINTS.size)
+    val POINTS = getPOINTS()
+    val ROOMS = getROOMS()
     val entryexit: Int = Property.Entry.value or Property.Exit.value
     val elev1 = Node(POINTS[0])
     val elev2 = Node(POINTS[1])
@@ -705,6 +720,71 @@ fun setupNavigationGraph(): NavigationGraph {
     return navGraph
 }
 
+fun setupLBGroundNavigationGraph(): NavigationGraph {
+    val POINTS = getPOINTS()
+    val ROOMS = getROOMS()
+    val entryexit: Int = Property.Entry.value or Property.Exit.value
+    val elev1 = Node(POINTS[0])
+    val elev2 = Node(POINTS[1])
+    elev1.add(elev2)
+    elev1.add(Node(ROOMS[41], entryexit))?.let { it.add(elev1) }
+    elev1.add(Node(ROOMS[48], entryexit or Property.Slow.value))?.let { it.add(elev1) }
+    elev2.add(elev1)
+    elev2.add(Node(ROOMS[42], entryexit))?.let { it.add(elev2) }
+    elev2.add(Node(ROOMS[49], entryexit or Property.Slow.value))?.let { it.add(elev2) }
+    val elev2sideMiddle = elev2.add(Node(POINTS[2]))
+    elev2sideMiddle!!.add(elev2)
+    val elev2SideTop = Node(POINTS[18])
+    val elev2SideBot = Node(POINTS[7])
+    elev2sideMiddle?.add(elev2SideTop)
+    elev2sideMiddle?.add(elev2SideBot)
+
+    elev2SideBot.add(elev2sideMiddle!!)
+    elev2SideBot.add(Node(ROOMS[17]))?.let { it.add(elev2SideBot) }
+    elev2SideBot.add(Node(POINTS[10]))?.let { n ->
+        n.add(elev2SideBot)
+        n.add(Node(ROOMS[59]))?.let { it.add(n) }
+        n.add(Node(POINTS[11]))?.let { m ->
+            m.add(n)
+            m.add(Node(ROOMS[60]))?.let { it.add(m) }
+    } }
+
+    elev2SideTop.add(elev2sideMiddle!!)
+    val elev2sideTopC = Node(POINTS[25])
+    elev2SideTop.add(elev2sideTopC)
+    elev2sideTopC.add(elev2SideTop)
+
+    val conn1 = Node(POINTS[29])
+    conn1.add(Node(ROOMS[54]))?.let { it.add(conn1) }
+    val conn2 = Node(POINTS[28])
+    conn2.add(Node(ROOMS[55]))?.let { it.add(conn2) }
+    conn2.add(elev2SideTop)
+    elev2SideTop.add(conn2)
+
+    val elev1SideTop = Node(POINTS[44])
+    conn1.add(elev1SideTop)
+    elev1SideTop.add(conn1)
+
+    val elev1SideMiddle = elev1.add(Node(POINTS[30]))
+    elev1SideMiddle!!.add(elev1)
+    elev1SideMiddle!!.add(elev1SideTop)?.let { it.add(elev1SideMiddle!!) }
+    val topCC = Node(POINTS[60])
+    topCC.add(Node(ROOMS[61]))?.let { it.add(topCC) }
+    val elev1sideTopC = Node(POINTS[50])
+    elev1SideTop.add(Node(POINTS[61]))?.let {
+        it.add(elev1SideTop)
+        it.add(Node(ROOMS[43]))?.let { n -> n.add(it) }
+        it.add(elev1sideTopC)?.let { n ->
+            n.add(it)
+            n.add(topCC)?.let { nn ->
+                nn.add(n)
+            }
+        }
+    }
+    elev2sideTopC.add(topCC)?.let { it.add(elev2sideTopC) }
+
+    return NavigationGraph(elev1)
+}
 
 fun initDirectionLayer(loadedStyle: Style) {
     loadedStyle.addSource(GeoJsonSource.Builder(GEO_SOURCE_ID_01).build())
