@@ -941,6 +941,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     fun updateDirFragBundle(key: String, value: String) {
         destFragBundle.putString(key, value)
     }
+    @SuppressLint("SuspiciousIndentation")
     fun disablePath() {
         lifecycleScope.launch {
             mutex.withLock {
