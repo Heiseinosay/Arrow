@@ -15,7 +15,81 @@
         app:mapbox_cameraZoom="18"
         tools:layout_editor_absoluteX="16dp"
         tools:layout_editor_absoluteY="136dp">
+
     </com.mapbox.maps.MapView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/vDirectionInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="30sp"
+        android:backgroundTint="@color/white"
+        android:visibility="gone"
+        app:cardCornerRadius="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/mapView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.1"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:id="@+id/ltDirectionInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginVertical="5sp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="24sp"
+            android:visibility="visible"
+            tools:visibility="visible">
+
+            <ImageView
+                android:id="@+id/ivLocPuckDirInfo"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/location_puck" />
+
+            <TextView
+                android:id="@+id/tvDirFrom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:text="TextView"
+                android:textSize="18sp"
+                android:visibility="gone"
+                tools:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/ivDotsDirInfo"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="center"
+                android:layout_marginHorizontal="10sp"
+                android:layout_weight="1"
+                android:rotation="90"
+                app:srcCompat="@drawable/dots_green" />
+
+            <ImageView
+                android:id="@+id/imageView10"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/explore_selected" />
+
+            <TextView
+                android:id="@+id/tvDirDest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:textSize="18sp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
     <FrameLayout
         android:layout_width="wrap_content"
@@ -69,19 +143,20 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:translationZ="2dp">
 
         <ScrollView
             android:id="@+id/myScroll"
             android:layout_width="34dp"
             android:layout_height="182dp"
+            android:background="@drawable/dragable_rounded"
+            android:backgroundTint="#B3FFFFFF"
             android:fadeScrollbars="true"
             android:fadingEdgeLength="40dp"
             android:overScrollMode="never"
             android:requiresFadingEdge="vertical"
             android:scrollbars="none"
-            android:background="@drawable/dragable_rounded"
-            android:backgroundTint="#B3FFFFFF"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.044"
@@ -115,111 +190,111 @@
                     android:id="@+id/ninethFloor"
                     android:layout_width="match_parent"
                     android:layout_height="35sp"
-                    android:text="9"
-                    android:textAlignment="center"
-                    android:textSize="17sp"
                     android:shadowColor="@color/medGrey"
                     android:shadowDx="-1"
                     android:shadowDy="-1"
-                    android:shadowRadius="1" />
+                    android:shadowRadius="1"
+                    android:text="9"
+                    android:textAlignment="center"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/eightFloor"
                     android:layout_width="match_parent"
                     android:layout_height="35sp"
-                    android:text="8"
-                    android:textAlignment="center"
-                    android:textSize="17sp"
                     android:shadowColor="@color/medGrey"
                     android:shadowDx="-1"
                     android:shadowDy="-1"
-                    android:shadowRadius="1" />
+                    android:shadowRadius="1"
+                    android:text="8"
+                    android:textAlignment="center"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/seventhFloor"
                     android:layout_width="match_parent"
                     android:layout_height="35sp"
-                    android:text="7"
-                    android:textAlignment="center"
-                    android:textSize="17sp"
                     android:shadowColor="@color/medGrey"
                     android:shadowDx="-1"
                     android:shadowDy="-1"
-                    android:shadowRadius="1" />
+                    android:shadowRadius="1"
+                    android:text="7"
+                    android:textAlignment="center"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/sixthFloor"
                     android:layout_width="match_parent"
                     android:layout_height="35sp"
-                    android:text="6"
-                    android:textAlignment="center"
-                    android:textSize="17sp"
                     android:shadowColor="@color/medGrey"
                     android:shadowDx="-1"
                     android:shadowDy="-1"
-                    android:shadowRadius="1" />
+                    android:shadowRadius="1"
+                    android:text="6"
+                    android:textAlignment="center"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/fifthFloor"
                     android:layout_width="match_parent"
                     android:layout_height="35sp"
-                    android:text="5"
-                    android:textAlignment="center"
-                    android:textSize="17sp"
                     android:shadowColor="@color/medGrey"
                     android:shadowDx="-1"
                     android:shadowDy="-1"
-                    android:shadowRadius="1" />
+                    android:shadowRadius="1"
+                    android:text="5"
+                    android:textAlignment="center"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/fourthFloor"
                     android:layout_width="match_parent"
                     android:layout_height="35sp"
-                    android:text="4"
-                    android:textAlignment="center"
-                    android:textSize="17sp"
                     android:shadowColor="@color/medGrey"
                     android:shadowDx="-1"
                     android:shadowDy="-1"
-                    android:shadowRadius="1" />
+                    android:shadowRadius="1"
+                    android:text="4"
+                    android:textAlignment="center"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/thirdFloor"
                     android:layout_width="match_parent"
                     android:layout_height="35sp"
-                    android:text="3"
-                    android:textAlignment="center"
-                    android:textSize="17sp"
                     android:shadowColor="@color/medGrey"
                     android:shadowDx="-1"
                     android:shadowDy="-1"
-                    android:shadowRadius="1" />
+                    android:shadowRadius="1"
+                    android:text="3"
+                    android:textAlignment="center"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/secondFloor"
                     android:layout_width="match_parent"
                     android:layout_height="35sp"
-                    android:text="2"
-                    android:textAlignment="center"
-                    android:textSize="17sp"
                     android:shadowColor="@color/medGrey"
                     android:shadowDx="-1"
                     android:shadowDy="-1"
-                    android:shadowRadius="1" />
+                    android:shadowRadius="1"
+                    android:text="2"
+                    android:textAlignment="center"
+                    android:textSize="17sp" />
 
                 <TextView
                     android:id="@+id/groundFloor"
                     android:layout_width="match_parent"
                     android:layout_height="35sp"
+                    android:shadowColor="@color/medGrey"
+                    android:shadowDx="-1"
+                    android:shadowDy="-1"
+                    android:shadowRadius="1"
                     android:text="G"
                     android:textAlignment="center"
                     android:textColor="@color/design_default_color_error"
                     android:textSize="17sp"
-                    android:textStyle="bold"
-                    android:shadowColor="@color/medGrey"
-                    android:shadowDx="-1"
-                    android:shadowDy="-1"
-                    android:shadowRadius="1" />
+                    android:textStyle="bold" />
 
             </LinearLayout>
         </ScrollView>
@@ -233,7 +308,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="1.0" >
+            app:layout_constraintVertical_bias="1.0">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -442,17 +517,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#80FFFFFF"
-        android:translationZ="2dp"
+        android:translationZ="3dp"
         android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
             android:text="Select Avatar"
             android:textColor="@color/green"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:layout_marginBottom="30dp"
             app:layout_constraintBottom_toTopOf="@+id/profile_holder"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
@@ -461,8 +536,8 @@
             android:id="@+id/profile_holder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:cardElevation="0dp"
             app:cardBackgroundColor="@android:color/transparent"
+            app:cardElevation="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -476,10 +551,10 @@
                     android:id="@+id/cv_male"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
-                    app:cardCornerRadius="120dp"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="5dp"
                     android:background="@color/offWhite"
+                    app:cardCornerRadius="120dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
@@ -496,11 +571,11 @@
                     android:id="@+id/cv_female"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
+                    android:layout_marginStart="20dp"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="5dp"
-                    android:layout_marginStart="20dp"
-                    app:cardCornerRadius="120dp"
                     android:background="@color/offWhite"
+                    app:cardCornerRadius="120dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/cv_male"
@@ -521,13 +596,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
-            android:text="Confirm"
-            android:textSize="14sp"
-            android:textColor="@color/white"
             android:backgroundTint="@color/darkGrey"
-            app:layout_constraintTop_toBottomOf="@+id/profile_holder"
+            android:text="Confirm"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@+id/profile_holder" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

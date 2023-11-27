@@ -8,7 +8,6 @@ import android.animation.AnimatorSet
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 
 import android.content.res.Resources
@@ -27,6 +26,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.provider.Settings
 
 import android.util.Log
@@ -57,7 +57,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProvider
 
 import androidx.lifecycle.lifecycleScope
-import com.example.arrow.utils.*
 
 import com.example.sqlitedatabase.DataBaseHandler
 import com.google.android.gms.maps.model.LatLng
@@ -81,6 +80,7 @@ import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.CoordinateBounds
 import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
+import com.mapbox.maps.MapboxStyleException
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.dsl.generated.interpolate
 import com.mapbox.maps.extension.style.expressions.generated.Expression
@@ -91,6 +91,7 @@ import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.flyTo
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.OnPolylineAnnotationClickListener
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
@@ -128,10 +129,15 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     private lateinit var fragmentManager: FragmentManager
     private var startValue:Float = 0.0f
     private var searchValue:String = ""
-    lateinit var navGraph: NavigationGraph
+    lateinit var navGraphLB: NavigationGraph
+    lateinit var navGraphGround: NavigationGraph
+    lateinit var vDirectionInfo: CardView
+    lateinit var allTextViews: List<TextView>
 
     val destFragBundle = Bundle()
     var isPathingEnabled = false
+    var cFloor = 0
+    var annotationDest: PointAnnotationManager? = null
     var cDestination: Point? = null
     // avoid data race on thread
     val mutex = Mutex()
@@ -193,7 +199,7 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
             scrollView.fullScroll(ScrollView.FOCUS_DOWN)
         }
 
-        val allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
+        allTextViews = listOf(tvGroundFloor, tvSecondFloor, tvThridFloor, tvFourthFloor, tvFifthFloor, tvSixthFloor, tvSeventhFloor, tvEightFloor, tvNinethFloor, roofDeck)
 
         for (i in allTextViews.indices) {
             val textView = allTextViews[i]
@@ -230,21 +236,32 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 }
                 lbMapLayers?.setCurrFloor(i+1) { ctx, floor ->
                     val key = if (floor == 3) "lb-rooms-3f-label" else "lb-rooms-upw-label"
-                    ctx.symbolLayers[key]?.textField(
-                        Expression.match(
-                            Expression.get("name"),
-                            Expression.array(
-                                Expression.literal("Faculty"),
+                    try {
+                        ctx.symbolLayers[key]?.textField(
+                            Expression.match(
+                                Expression.get("name"),
+                                Expression.array(
+                                    Expression.literal("Faculty"),
+                                    Expression.literal("Library")
+                                ),
+                                Expression.get("name"),
                                 Expression.literal("Dean's Office"),
-                                Expression.literal("Library")
-                            ),
-                            Expression.get("name"),
-                            Expression.concat(
-                                Expression.literal("" + floor),
-                                Expression.get("name")
+                                Expression.literal(if (floor == 9) "Conference Hall" else "Dean's Office"),
+                                Expression.concat(
+                                    Expression.literal("" + floor),
+                                    Expression.get("name")
+                                )
                             )
                         )
-                    )
+                    }
+                    catch (e: MapboxStyleException) {
+                        Log.i("MapboxStyleException", "${e.message}")
+                        Toast.makeText(this, "Something Went Wrong",Toast.LENGTH_SHORT).show()
+                    }
+                    catch (e: RuntimeException) {
+                        Log.i("MapboxStyleExceptionRuntimeException", "${e.message}")
+                        Toast.makeText(this, "Something Went Wrong",Toast.LENGTH_SHORT).show()
+                    }
                 }
                 currFloor = i+1
                 if (clicked){
@@ -401,9 +418,13 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         mapView = findViewById(R.id.mapView)
         mapboxMap = mapView?.getMapboxMap()
 
-        navGraph = setupNavigationGraph()
-        navGraph.maxRouteSize = 1
+        navGraphLB = setupLBNavigationGraph()
+        navGraphLB.maxRouteSize = 1
 
+        navGraphGround = setupLBGroundNavigationGraph()
+        navGraphGround.maxRouteSize = 1
+
+        vDirectionInfo = findViewById(R.id.vDirectionInfo)
         modBuiltinUI()
 
         onMapReady()
@@ -606,10 +627,10 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         mapView?.gestures?.focalPoint = mapboxMap?.pixelForCoordinate(it)
         lifecycleScope.launch {
             mutex.withLock {
-                if (isPathingEnabled && cDestination != null) {
+                if (isPathingEnabled && cDestination != null && cFloor != 0) {
                     Log.i("PrevPathingIndicatorPositionChanged", "$isPathingEnabled ${cDestination?.longitude()} ${cDestination?.latitude()}")
                     if (prevUserLocation != null && distanceOf(it, prevUserLocation!!) > 0.1) {
-                        findRoute(null, cDestination!!)
+                        findRoute(null, cDestination!!,cFloor)
                     }
                 }
             }
@@ -798,10 +819,10 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     }
 
 
-    private fun addAnnotationToMap(longitude: Double, latitude: Double) {
+    private fun addAnnotationToMap(longitude: Double, latitude: Double, drawable: Int = R.drawable.arrowvector): PointAnnotationManager? {
         bitmapFromDrawableRes(
             this,
-            R.drawable.arrowvector
+            drawable
         )?.let {
             val annotationApi = mapView?.annotations
             val pointAnnotationManager = annotationApi?.createPointAnnotationManager()
@@ -810,13 +831,14 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 .withIconImage(it)
 
             pointAnnotationManager?.create(pointAnnotationOptions)
+            return pointAnnotationManager
         }
+        return null
     }
 
     private fun bitmapFromDrawableRes(context: Context, @DrawableRes resourceId: Int) =
         convertDrawableToBitmap(AppCompatResources.getDrawable(context, resourceId))
 
-    // Converting Drawable To Bitmap
     private fun convertDrawableToBitmap(sourceDrawable: Drawable?): Bitmap? {
         if (sourceDrawable == null) {
             return null
@@ -937,7 +959,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         reqPermissionLauncher.launch(PERMISSIONS)
     }
 
-
     fun updateDirFragBundle(key: String, value: String) {
         destFragBundle.putString(key, value)
     }
@@ -949,40 +970,88 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 cDestination = null
             }
         }
-        for (i in 0 until navGraph.maxRouteSize)
-        drawDirection(
-            mapboxMap?.getStyle()!!,
-            listOf(),
-            if (i%2==0) GEO_SOURCE_ID_01 else GEO_SOURCE_ID_02
-        )
+        for (i in 0 until navGraphLB.maxRouteSize)
+            drawDirection(
+                mapboxMap?.getStyle()!!,
+                listOf(),
+                if (i%2==0) GEO_SOURCE_ID_01 else GEO_SOURCE_ID_02
+            )
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        annotationDest?.let { mapView?.annotations?.removeAnnotationManager(it) }
+        vDirectionInfo.visibility = View.GONE
     }
-    fun findRoute(findFirst: Point?, destination: Point,callable: (Boolean)-> Unit = { _ -> }) {
+    fun findRoute(findFirst: Point?, destination: Point, floor: Int,callable: (Boolean)-> Unit = { _ -> }) {
         val userLoc = requestSingleLocationUpdate()
         if (userLoc == null) return
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
+        val handler = Handler(this.mainLooper)
+        fun dirInfoUI(handler: Handler, tFrom: String, tDest: String, enable: Boolean = false) {
+            handler.post {
+                val tvDirFrom: TextView = findViewById(R.id.tvDirFrom)
+                val ivLocPuckDirInfo: ImageView = findViewById(R.id.ivLocPuckDirInfo)
+                val tvDirDest: TextView = findViewById(R.id.tvDirDest)
+                if (enable) {
+                    vDirectionInfo.visibility = View.VISIBLE
+                    tvDirDest.text = if (tDest.length >= 10) tDest.substring(0,8) + "..." else tDest
+                    if (tFrom == YOUR_LOCATION) {
+                        tvDirFrom.visibility = View.GONE
+                        ivLocPuckDirInfo.visibility = View.VISIBLE
+                    }
+                    else {
+                        tvDirFrom.visibility = View.VISIBLE
+                        tvDirFrom.text = if (tFrom.length >= 10) tFrom.substring(0,8) + "..." else tFrom
+                        ivLocPuckDirInfo.visibility = View.GONE
+                    }
+                }
+                else {
+                    val ivDotsDirInfo: ImageView = findViewById(R.id.ivDotsDirInfo)
+                    tvDirFrom.visibility = View.GONE
+                    ivLocPuckDirInfo.visibility = View.GONE
+                    ivDotsDirInfo.visibility = View.GONE
+                    vDirectionInfo.visibility = View.VISIBLE
+                    tvDirDest.text = "You have arrived at ${if (tDest.length >= 10) "your Destination" else tDest}"
+                    vDirectionInfo.postDelayed(
+                        { vDirectionInfo.visibility = View.GONE },
+                        3000
+                    )
+                }
+            }
+        }
         thread(true, true) {
+            annotationDest?.let { mapView?.annotations?.removeAnnotationManager(it) }
+            annotationDest = null
             var fFirst = findFirst
             drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_01)
             drawDirection(mapboxMap?.getStyle()!!, listOf(), GEO_SOURCE_ID_02)
+            // Destination is found
             if (distanceOf(userLoc, destination) <= 0.1) {
                 lifecycleScope.launch {
                     mutex.withLock {
                         isPathingEnabled = false
                         cDestination = null
+                        cFloor = 0
+                        annotationDest?.let { mapView?.annotations?.removeAnnotationManager(it) }
                         callable(isPathingEnabled)
+                        dirInfoUI(
+                            handler,
+                            destFragBundle.getString(CURR_LOC) ?: "",
+                            destFragBundle.getString(DEST_LOC) ?: "",
+                            isPathingEnabled
+                        )
                     }
                 }
                 return@thread
             }
             Log.i("FindRoute", "Dest: $destination")
             var priority = 0
-            if (lbMapLayers?.currFloor != 8) {
+            var nDest: Point? = null
+
+            if (lbMapLayers?.currFloor != floor) {
                 priority = Property.Entry.value or
                         Property.Exit.value or
                         if (ProfileObjects.role == "Employee") Property.Faculty.value else 0
-                navGraph.searchNearest(userLoc, priority, true)?.let {
+                navGraphLB.searchNearest(userLoc, priority, true)?.let {
                     Log.i("FindRoute", "Priority: ${it.property}")
                     val elev1_2 = LatLngBounds.Builder()
                         .include(LatLng(14.60269424107424641, 120.98934008317019106))
@@ -998,9 +1067,24 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                         elev1_2.contains(p) && elev1_2.contains(u) ||
                         elev3.contains(p) && elev3.contains(u)
                     ) {
-                          findViewById<TextView>(R.id.eightFloor).performClick()
+                          allTextViews[floor-1].performClick()
                           priority = 0
                           fFirst = it.loc
+                    }
+                    else if (lbMapLayers?.currFloor == 8 || lbMapLayers?.currFloor == 9 || lbMapLayers?.currFloor == 1) {
+                        val ROOMS = getROOMS()
+                        priority = 0
+                        nDest = ROOMS[41]
+                        var closest = distanceOf(userLoc, ROOMS[41])
+                        if (closest > distanceOf(userLoc, ROOMS[42])) {
+                            closest = distanceOf(userLoc, ROOMS[42])
+                            nDest = ROOMS[42]
+                        }
+                        if (ProfileObjects.role == "Employee") {
+                            if (closest > distanceOf(userLoc, ROOMS[43])) {
+                                nDest = ROOMS[43]
+                            }
+                        }
                     }
                     else {
                         drawDirection(
@@ -1012,7 +1096,14 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                             mutex.withLock {
                                 isPathingEnabled = true
                                 cDestination = destination
+                                cFloor = floor
                                 callable(isPathingEnabled)
+                                dirInfoUI(
+                                    handler,
+                                    destFragBundle.getString(CURR_LOC) ?: "",
+                                    destFragBundle.getString(DEST_LOC) ?: "",
+                                    isPathingEnabled
+                                )
                             }
                         }
                         return@thread
@@ -1028,12 +1119,23 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 "FindRouteParams",
                 "${priority}  ${findFirst?.longitude()} ${findFirst?.latitude()}"
             )
-            val routes = navGraph.requestRoute(
-                userLoc,
-                destination,
-                priority,
-                fFirst
-            )
+            var routes: List<List<Point>> = listOf()
+            if (lbMapLayers?.currFloor == 1) {
+                routes = navGraphGround.requestRoute(
+                    userLoc,
+                    if (nDest != null) nDest!! else destination,
+                    priority,
+                    fFirst
+                )
+            }
+            else {
+                routes = navGraphLB.requestRoute(
+                    userLoc,
+                    if (nDest != null) nDest!! else destination,
+                    priority,
+                    fFirst
+                )
+            }
             Log.i(TAG, "Routes size " + routes.size)
             if (routes.isNotEmpty()) {
                 var c = 0
@@ -1042,6 +1144,8 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                     if (c % 2 != 0) id = GEO_SOURCE_ID_02
                     c++
                     drawDirection(mapboxMap?.getStyle()!!, i, id)
+                    if (nDest == null)
+                        annotationDest = addAnnotationToMap(i[i.size -1].longitude(), i[i.size -1].latitude(), R.drawable.explore_selected)
                 }
 
                 lifecycleScope.launch {
@@ -1052,7 +1156,14 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                         )
                         isPathingEnabled = true
                         cDestination = destination
+                        cFloor = floor
                         callable(isPathingEnabled)
+                        dirInfoUI(
+                            handler,
+                            destFragBundle.getString(CURR_LOC) ?: "",
+                            destFragBundle.getString(DEST_LOC) ?: "",
+                            isPathingEnabled
+                        )
                     }
                 }
             }

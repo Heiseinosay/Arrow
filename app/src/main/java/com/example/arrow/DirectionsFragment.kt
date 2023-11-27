@@ -1,7 +1,7 @@
 package com.example.arrow
 
 import android.database.sqlite.SQLiteDatabase
-import com.example.arrow.utils.ROOMS
+import com.example.arrow.utils.getROOMS
 import com.example.arrow.utils.distanceOf
 import android.os.Bundle
 import android.os.Handler
@@ -22,6 +22,11 @@ import androidx.fragment.app.Fragment
 import com.example.sqlitedatabase.DataBaseHandler
 import com.mapbox.geojson.Point
 
+const val YOUR_LOCATION = "Your Location"
+const val CURR_LOC = "CurrLoc"
+const val DEST_LOC = "DestLoc"
+const val IS_PATH_ENABLE =  "IsPathEnable"
+
 class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment_directions) {
     private lateinit var etInputs: List<EditText>
     private lateinit var svDSLinearLayout: LinearLayout
@@ -33,11 +38,6 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
 
     private lateinit var btSwitchLoc: Button
     private lateinit var tvCancel: TextView
-
-    val YOUR_LOCATION = "Your Location"
-    val CURR_LOC = "CurrLoc"
-    val DEST_LOC = "DestLoc"
-    val IS_PATH_ENABLE =  "IsPathEnable"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -142,22 +142,27 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         val db = dbHelper.readableDatabase
         val userLoc = context.checkLocationEnabled()
 
-        fun getStringFrom(query: String): String {
+        fun getStringFrom(query: String): Pair<String, Int> {
             val res = db.rawQuery(query, null)
             if (res == null || res.count == 0) {
                 res?.close()
-                return ""
+                return Pair("",-1)
             }
             res.moveToNext()
             val columnIndex = res.getColumnIndex("stIndex")
+            val columnFloor = res.getColumnIndex("Floor")
             val ret = res.getString(columnIndex)
+            val floor = res.getInt(columnFloor)
             res.close()
-            return ret
+            return Pair(ret, floor)
         }
 
+        var originFloor = -1
         if (sbCurrLoc != YOUR_LOCATION) {
             Log.i("DestinationFragmentFindPath", "sbCurrLoc: $sbCurrLoc")
-            val ret = getStringFrom("SELECT * FROM MapIndex WHERE RoomID LIKE '$sbCurrLoc'")
+            val pret = getStringFrom("SELECT * FROM MapIndex join coords on MapIndex.RoomID = coords.RoomID WHERE MapIndex.RoomID LIKE '$sbCurrLoc'")
+            val ret = pret.first
+            originFloor = pret.second
             if (ret.isEmpty()) {
                 db.close()
                 return
@@ -166,20 +171,21 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         }
 
         Log.i("DestinationFragmentFindPath", "sbDestLoc: $sbDestLoc")
-        val ret = getStringFrom("SELECT * FROM MapIndex WHERE RoomID LIKE '$sbDestLoc'")
+        val (ret, floor) = getStringFrom("SELECT * FROM MapIndex join coords on MapIndex.RoomID = coords.RoomID WHERE MapIndex.RoomID LIKE '$sbDestLoc'")
         if (ret.isEmpty()) {
             db.close()
             return
         }
         if (findFirst != null) destination = toROOMSPoint(ret,userLoc,findFirst)
         else destination = toROOMSPoint(ret,userLoc)
+        if (originFloor != floor && originFloor >= 1 && originFloor <= 10) context.allTextViews[originFloor-1].performClick()
 
         db.close()
         if (destination == null) return
         Log.i("DirectionsFragmentFindPath", "$findFirst $destination")
 
         val handler = Handler(requireContext().mainLooper)
-        context.findRoute(findFirst, destination) { isPathEnabled ->
+        context.findRoute(findFirst, destination, floor) { isPathEnabled ->
             Log.i("FindRoute", "Callable")
             handler.post {
                 context.updateDirFragBundle(IS_PATH_ENABLE,isPathEnabled.toString())
@@ -206,6 +212,7 @@ class DirectionsFragment(val context: BirdsEyeView) : Fragment(R.layout.fragment
         }
         var closest: Point? = null
         var closestDist = 1000.0
+        val ROOMS = getROOMS()
         for (i in indexes) {
             i.toIntOrNull()?.let {
                 Log.i("DirectionsFragment", "New dist ${ distanceOf(userLoc, ROOMS[it]) }")
