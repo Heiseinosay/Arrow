@@ -622,8 +622,13 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
 
     private var prevUserLocation: Point? = null
 
+    var userLocation: Point? = null
+    var userLocationPuckIcon: PointAnnotationManager? = null
     private val onIndicatorPositionChangedListener = OnIndicatorPositionChangedListener {
+        userLocation = it
         mapboxMap?.setCamera(CameraOptions.Builder().center(it).build())
+        userLocationPuckIcon?.let { mapView?.annotations?.removeAnnotationManager(it) }
+        userLocationPuckIcon = addAnnotationToMap(it.longitude(),it.latitude(),R.drawable.location_puck)
         mapView?.gestures?.focalPoint = mapboxMap?.pixelForCoordinate(it)
         lifecycleScope.launch {
             mutex.withLock {
@@ -745,33 +750,37 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
     // GET USER CURRENT LOCATION
     private var locationCallback: LocationEngineCallback<LocationEngineResult>? = null
     fun requestSingleLocationUpdate(): Point? {
-        var latitude:Double = 0.000
-        var longitude: Double = 0.000
-        if (locationCallback == null) {
-            locationCallback = object : LocationEngineCallback<LocationEngineResult> {
-                override fun onSuccess(result: LocationEngineResult?) {
-                    val location = result?.lastLocation
-                    location?.let {
-                        latitude = it.latitude
-                        longitude = it.longitude
-                        // Toast.makeText(applicationContext, "Current Location: Lat $latitude, Lng $longitude", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onFailure(exception: Exception) {
-                    // Handle failure if needed
-                }
-            }
-        }
+//        var latitude:Double = 0.000
+//        var longitude: Double = 0.000
+//        if (locationCallback == null) {
+//            locationCallback = object : LocationEngineCallback<LocationEngineResult> {
+//                override fun onSuccess(result: LocationEngineResult?) {
+//                    val location = result?.lastLocation
+//                    location?.let {
+//                        latitude = it.latitude
+//                        longitude = it.longitude
+//                        // Toast.makeText(applicationContext, "Current Location: Lat $latitude, Lng $longitude", Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//
+//                override fun onFailure(exception: Exception) {
+//                    // Handle failure if needed
+//                }
+//            }
+//        }
 
 
         // CHECK IF INSIDE BOUNDS
-        val userLocation = LatLng(latitude, longitude) // inside
-        val isInside:Boolean = isUserLocationInsideBounds(userLocation)
-
-        if (isInside) {
+//        val userLocation = LatLng(latitude, longitude) // inside
+        var isInside = false
+        userLocation?.let {
+            isUserLocationInsideBounds(LatLng(it.latitude(),it.longitude()))
+            isInside = true
+        }
+        Toast.makeText(this,"$userLocation",Toast.LENGTH_SHORT).show()
+        if (isInside && userLocation != null) {
             val camera = CameraOptions.Builder()
-                .center(Point.fromLngLat(longitude,latitude))
+                .center(userLocation)
                 .zoom(22.0)
                 .bearing(0.0)
                 .build()
@@ -793,29 +802,26 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
         }
 
 
-        val request = LocationEngineRequest.Builder(1000L)
-            .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
-            .build()
+//        val request = LocationEngineRequest.Builder(1000L)
+//            .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+//            .build()
 
-        val locationEngine = LocationEngineProvider.getBestLocationEngine(this)
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return null
-        }
+//        val locationEngine = LocationEngineProvider.getBestLocationEngine(this)
+//        if (ActivityCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.ACCESS_FINE_LOCATION
+//            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+//                this,
+//                Manifest.permission.ACCESS_COARSE_LOCATION
+//            ) != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            return null
+//        }
+//
+//        locationEngine.requestLocationUpdates(request, locationCallback!!, mainLooper)
+//        locationEngine.getLastLocation(locationCallback!!)
 
-        locationEngine.requestLocationUpdates(request, locationCallback!!, mainLooper)
-        locationEngine.getLastLocation(locationCallback!!)
-
-        if (isInside) {
-            return Point.fromLngLat(longitude, latitude)
-        }
-        return null
+        return userLocation
     }
 
 
