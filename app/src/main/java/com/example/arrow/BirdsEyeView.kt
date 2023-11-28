@@ -1239,9 +1239,6 @@ class BirdsEyeView : AppCompatActivity(), FragmentToActivitySearch  {
                 val intentPanorama = Intent(Intent.ACTION_VIEW, Uri.parse(panoramaURL))
                 Log.d("intentPanorama", "${Uri.parse(panoramaURL)}")
                 startActivity(intentPanorama)
-
-                //downloadURL(currentFloor, imageURI)
-                Toast.makeText(this, imageURI, Toast.LENGTH_SHORT).show()
             } else {
                 checkNetworkEnabled()
             }
