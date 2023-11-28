@@ -15,7 +15,7 @@
             android:id="@+id/vSuggestLine"
             android:layout_width="300dp"
             android:layout_height="2dp"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="12dp"
             android:background="@color/medGrey"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -24,41 +24,35 @@
             app:layout_constraintVertical_bias="0.0" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout3"
             android:layout_width="30dp"
             android:layout_height="115dp"
-            android:layout_marginTop="15dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.041"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="10dp"
+            app:layout_constraintBottom_toTopOf="@+id/tvDirectionSuggestion"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.073">
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/ivDotOutline"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="15dp"
                 android:src="@drawable/dot_outline"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/ivDots"
                 android:layout_width="8dp"
                 android:layout_height="24dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="12dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
                 android:src="@drawable/dots"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.395" />
+                app:layout_constraintTop_toBottomOf="@+id/ivDotOutline" />
 
             <ImageView
                 android:id="@+id/ivLocationIcon"
@@ -67,10 +61,8 @@
                 android:src="@drawable/explore_selected"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.823" />
+                app:layout_constraintTop_toBottomOf="@+id/ivDots" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -78,32 +70,25 @@
             android:id="@+id/btSwitchLoc"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_marginTop="90dp"
-            android:layout_marginBottom="621dp"
+            android:layout_marginEnd="10dp"
             android:background="@drawable/swap_vert"
             android:backgroundTint="@color/black"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/cvDestinationSearch"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.958"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0" />
+            app:layout_constraintTop_toTopOf="@+id/cvCurrentLocation" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cvCurrentLocation"
-            android:layout_width="300dp"
+            android:layout_width="270dp"
             android:layout_height="50dp"
-            android:layout_marginTop="15dp"
+            android:layout_marginHorizontal="24sp"
             android:backgroundTint="@color/lightGrey"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp"
             app:cardMaxElevation="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.493"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.049">
+            app:layout_constraintEnd_toStartOf="@+id/btSwitchLoc"
+            app:layout_constraintStart_toEndOf="@+id/constraintLayout3"
+            app:layout_constraintTop_toTopOf="@+id/constraintLayout3">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -111,7 +96,7 @@
 
                 <EditText
                     android:id="@+id/etCurrLocSearchbar"
-                    android:layout_width="250dp"
+                    android:layout_width="240dp"
                     android:layout_height="45dp"
                     android:background="@android:color/transparent"
                     android:ems="10"
@@ -121,27 +106,23 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.6" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cvDestinationSearch"
-            android:layout_width="300dp"
+            android:layout_width="270dp"
             android:layout_height="50dp"
-            android:layout_marginTop="90dp"
+            android:layout_marginTop="15dp"
             android:backgroundTint="@color/lightGrey"
             app:cardCornerRadius="20dp"
             app:cardElevation="0dp"
             app:cardMaxElevation="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.493"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.049">
+            app:layout_constraintEnd_toEndOf="@+id/cvCurrentLocation"
+            app:layout_constraintStart_toStartOf="@+id/cvCurrentLocation"
+            app:layout_constraintTop_toBottomOf="@+id/cvCurrentLocation">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -149,7 +130,7 @@
 
                 <EditText
                     android:id="@+id/etDestinationSearchbar"
-                    android:layout_width="250dp"
+                    android:layout_width="240dp"
                     android:layout_height="45dp"
                     android:background="@android:color/transparent"
                     android:ems="10"
@@ -184,32 +165,24 @@
             android:id="@+id/tvDirectionSuggestion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="200dp"
             android:text="Suggestions"
-            android:textSize="12sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.16"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:textSize="14sp"
+            app:layout_constraintBottom_toTopOf="@+id/svDirectionSuggestions"
+            app:layout_constraintStart_toStartOf="@+id/vSuggestLine"
+            app:layout_constraintTop_toBottomOf="@+id/cvDestinationSearch" />
 
         <TextView
             android:id="@+id/tvCancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="295dp"
-            android:layout_marginTop="21dp"
-            android:layout_marginEnd="60dp"
-            android:layout_marginBottom="7dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="15dp"
             android:text="Cancel"
             android:textColor="@color/darkRed"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:visibility="invisible"
-            app:layout_constraintBottom_toTopOf="@+id/cvCurrentLocation"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.493"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/cvCurrentLocation"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
